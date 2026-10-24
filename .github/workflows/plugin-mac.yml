@@ -1,118 +1,59 @@
 
-name: Build Speak or Spell AU, VST3 and Installer
+name: Build Speak or Spell Mac Installer
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - "Speak-or-Spell-by-Wavey-Beat.-main/plugin/**"
-      - ".github/workflows/plugin-mac.yml"
+      - "Speak-or-Spell-by-Wavey-Beat.-main/**"
+      - ".github/workflows/main.yml"
 
 permissions:
   contents: read
 
 jobs:
-  build-plugins:
-    name: Build Intel Mac Plugins and Installer
+  build:
+    name: Build Intel Mac DMG
     runs-on: macos-15-intel
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Install build tools
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check project files
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
         run: |
-          brew install cmake ninja
+          test -f package.json
+          test -f main.js
+          test -f preload.js
+          test -f index.html
+          test -f renderer.js
 
-      - name: Configure plugin project
+      - name: Install dependencies
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
+        run: npm install --no-audit --no-fund
+
+      - name: Build Intel Mac DMG and ZIP
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
+        run: npm run dist:mac
+
+      - name: Verify installer was created
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
         run: |
-          cmake -S "Speak-or-Spell-by-Wavey-Beat.-main/plugin" \
-            -B build-plugin \
-            -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+          ls -lah dist
+          test -n "$(find dist -maxdepth 1 -type f -name '*.dmg' -print -quit)"
 
-      - name: Build plugin formats
-        run: |
-          cmake --build build-plugin --config Release
-
-      - name: Verify AU and VST3 bundles
-        run: |
-          find build-plugin -type d \( -name "*.component" -o -name "*.vst3" \) -print
-          test -n "$(find build-plugin -type d -name '*.component' -print -quit)"
-          test -n "$(find build-plugin -type d -name '*.vst3' -print -quit)"
-
-      - name: Create macOS PKG and DMG installers
-        run: |
-          set -euo pipefail
-
-          AU_BUNDLE="$(find build-plugin -type d -name '*.component' -print -quit)"
-          VST3_BUNDLE="$(find build-plugin -type d -name '*.vst3' -print -quit)"
-
-          test -d "$AU_BUNDLE"
-          test -d "$VST3_BUNDLE"
-
-          mkdir -p "package-root/Library/Audio/Plug-Ins/Components"
-          mkdir -p "package-root/Library/Audio/Plug-Ins/VST3"
-
-          ditto "$AU_BUNDLE" \
-            "package-root/Library/Audio/Plug-Ins/Components/$(basename "$AU_BUNDLE")"
-
-          ditto "$VST3_BUNDLE" \
-            "package-root/Library/Audio/Plug-Ins/VST3/$(basename "$VST3_BUNDLE")"
-
-          pkgbuild \
-            --root package-root \
-            --identifier com.waveybeat.speakorspell.plugins \
-            --version 0.2.0 \
-            --install-location / \
-            "Speak-or-Spell-by-Wavey-Beat-Intel-Mac.pkg"
-
-          mkdir -p installer-dmg
-          cp "Speak-or-Spell-by-Wavey-Beat-Intel-Mac.pkg" installer-dmg/
-
-          cat > installer-dmg/README.txt <<'README'
-Speak or Spell by Wavey Beat - Intel Mac Plugin Installer
-
-1. Open the PKG installer and follow the prompts.
-2. The installer places the Audio Unit in:
-   /Library/Audio/Plug-Ins/Components
-3. The installer places the VST3 plugin in:
-   /Library/Audio/Plug-Ins/VST3
-4. Restart Logic Pro or FL Studio and rescan plugins if needed.
-
-Compatibility target: macOS 11 or newer on Intel.
-
-This package is not code-signed or notarized. macOS may require approval
-in Privacy & Security. Logic Pro AU validation and DAW operation must
-still be tested on a Mac.
-README
-
-          hdiutil create \
-            -volname "Speak or Spell by Wavey Beat" \
-            -srcfolder installer-dmg \
-            -ov -format UDZO \
-            "Speak-or-Spell-by-Wavey-Beat-Intel-Mac.dmg"
-
-          pkgutil --payload-files \
-            "Speak-or-Spell-by-Wavey-Beat-Intel-Mac.pkg" \
-            > pkg-payload-files.txt
-
-          grep -q 'Audio/Plug-Ins/Components' pkg-payload-files.txt
-          grep -q 'Audio/Plug-Ins/VST3' pkg-payload-files.txt
-
-          hdiutil verify "Speak-or-Spell-by-Wavey-Beat-Intel-Mac.dmg"
-
-          ls -lh \
-            "Speak-or-Spell-by-Wavey-Beat-Intel-Mac.pkg" \
-            "Speak-or-Spell-by-Wavey-Beat-Intel-Mac.dmg"
-
-      - name: Upload installer artifacts
+      - name: Upload Mac installer
         uses: actions/upload-artifact@v4
         with:
-          name: Speak-or-Spell-Intel-Mac-Installers
+          name: Speak-or-Spell-by-Wavey-Beat-Intel-Mac
           path: |
-            Speak-or-Spell-by-Wavey-Beat-Intel-Mac.pkg
-            Speak-or-Spell-by-Wavey-Beat-Intel-Mac.dmg
+            Speak-or-Spell-by-Wavey-Beat.-main/dist/*.dmg
+            Speak-or-Spell-by-Wavey-Beat.-main/dist/*.zip
           if-no-files-found: error
           retention-days: 14
