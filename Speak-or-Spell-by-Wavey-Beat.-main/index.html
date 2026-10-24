@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Speak or Spell by Wavey Beat</title><link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="app-shell">
+<header class="topbar"><div class="brand-mark">WB</div><div class="brand-copy"><h1>SPEAK <span>OR</span> SPELL</h1><p>BY WAVEY BEAT · PLAYABLE VOCAL SYNTH</p></div><div class="top-actions"><button id="openSettings" class="secondary">⚙ Settings</button><button id="openProjectBtn" class="secondary">Open</button><button id="openLyrics" class="secondary">Lyrics / Text</button><button id="saveBtn" class="primary">Save</button></div></header>
+<section class="device">
+<div class="device-top"><span class="screw"></span><div class="device-logo">SPEAK <b>&</b> SPELL <small>WAVEY BEAT EDITION</small></div><span class="screw"></span></div>
+<div class="lcd-frame"><div class="lcd" aria-live="polite"><div class="lcd-status"><span id="modeReadout">SING MODE</span><span id="statusText">READY</span></div><div id="lcdText" class="lcd-text">HELLO, SINGER!</div><div class="lcd-bottom"><span id="noteReadout">NOTE: C4</span><span id="voiceReadout">VOICE: RETRO</span></div></div></div>
+<div class="device-label">PRESS A LETTER · PLAY A NOTE · MAKE IT TALK</div>
+<div id="letterPad" class="letter-pad" aria-label="Speak and Spell letter keypad"></div>
+<div class="device-functions"><button id="speakBtn">▶ SAY TEXT</button><button id="stopBtn">■ STOP</button><button id="randomBtn">✦ SURPRISE ME</button></div>
+</section>
+<section class="play-panel">
+<div class="panel-heading"><div><span class="eyebrow">PLAYABLE VOICE</span><h2>Vocal keyboard</h2></div><div class="key-tools"><label>KEY <select id="keySelect"><option>C</option><option>C♯</option><option>D</option><option>D♯</option><option>E</option><option>F</option><option>F♯</option><option>G</option><option>G♯</option><option>A</option><option>A♯</option><option>B</option></select></label><label>OCTAVE <select id="octaveSelect"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option></select></label></div></div>
+<p class="helper">Click a key or use a connected MIDI keyboard. Each note sustains while held; vowels change the vocal shape.</p>
+<div id="piano" class="piano" aria-label="Playable piano keyboard"></div>
+<div class="keyboard-footer"><div><span class="live-dot"></span><span id="midiStatus">MIDI: checking support…</span></div><button id="midiBtn" class="text-button">Connect MIDI</button></div>
+</section>
+<section id="settingsPanel" class="settings-panel hidden"><div class="panel-heading"><div><span class="eyebrow">TUCKED AWAY, JUST LIKE YOU ASKED</span><h2>Voice & sound settings</h2></div><button id="closeSettings" class="secondary">Done ✕</button></div>
+<div class="settings-grid">
+<label>Speak → Sing <strong id="singValue">80%</strong><input id="singMix" type="range" min="0" max="100" value="80"></label>
+<label>Voice character<select id="voiceStyle"><option value="retro">1978 Retro Robot</option><option value="masculine">Deep / Masculine</option><option value="feminine">Bright / Feminine</option></select></label>
+<label>Pitch range <strong id="pitchValue">0 st</strong><input id="pitchShift" type="range" min="-12" max="12" value="0"></label>
+<label>Vibrato <strong id="vibratoValue">18%</strong><input id="vibrato" type="range" min="0" max="100" value="18"></label>
+<label>Vowel / formant <select id="vowel"><option value="a">AH</option><option value="e">EH</option><option value="i">EE</option><option value="o">OH</option><option value="u">OO</option></select></label>
+<label>Voice brightness <strong id="brightValue">55%</strong><input id="brightness" type="range" min="0" max="100" value="55"></label>
+<label>Output level <strong id="volumeValue">70%</strong><input id="volume" type="range" min="0" max="100" value="70"></label>
+<label>Musical scale<select id="scaleSelect"><option>Chromatic</option><option>Major</option><option>Minor</option></select></label>
+</div><p class="small-note">These controls affect the playable synthesized voice. This first engine creates pitched, formant-shaped vocal sounds; full lyric-to-melody singing is a separate synthesis feature.</p>
+</section>
+<section id="lyricsPanel" class="lyrics-panel hidden"><div class="panel-heading"><div><span class="eyebrow">TEXT / SAMPLE SOURCE</span><h2>Words to trigger</h2></div><button id="closeLyrics" class="secondary">Done ✕</button></div><textarea id="lyricsEditor" placeholder="Type a word or phrase to speak, or choose a short syllable to play on the keys…">Hello, singer!</textarea><div class="lyrics-actions"><button id="previewText" class="primary">▶ Speak text</button><button id="exportTxtBtn" class="secondary">Export text</button></div><p class="small-note">The text button uses your system speech voice. Keyboard notes play the live synthetic vocal engine, and letter buttons trigger pitched letter-like sounds.</p></section>
+<footer>WAVEY BEAT · SPEAK OR SPELL <span id="footerBuild">EARLY PLAYABLE BUILD · 0.2.0</span></footer>
+</main><script src="renderer.js"></script></body></html>

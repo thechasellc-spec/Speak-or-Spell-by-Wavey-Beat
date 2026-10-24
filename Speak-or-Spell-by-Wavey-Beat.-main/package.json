@@ -1,0 +1,52 @@
+{
+  "name": "speak-or-spell-wavey-beat",
+  "version": "0.2.0",
+  "description": "Retro Speak & Spell-style playable vocal synthesizer with MIDI input",
+  "main": "main.js",
+  "author": "Wavey Beat",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dist:mac": "electron-builder --mac dmg zip --x64 --publish never",
+    "dist:win": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "25.9.8",
+    "electron-builder": "24.13.3"
+  },
+  "build": {
+    "appId": "com.waveybeat.speakorspell",
+    "productName": "Speak or Spell by Wavey Beat",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "styles.css",
+      "renderer.js",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.music"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
