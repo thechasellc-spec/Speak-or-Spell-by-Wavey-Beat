@@ -1,58 +1,59 @@
+
 name: Build Speak or Spell Mac Installer
 
 on:
-workflow_dispatch:
-push:
-paths:
-- "Speak-or-Spell-by-Wavey-Beat.-main/**"
-- ".github/workflows/build-mac-installer.yml"
+  workflow_dispatch:
+  push:
+    paths:
+      - "Speak-or-Spell-by-Wavey-Beat.-main/**"
+      - ".github/workflows/main.yml"
 
 permissions:
-contents: read
+  contents: read
 
 jobs:
-build:
-name: Build Intel Mac DMG
-runs-on: macos-13
+  build:
+    name: Build Intel Mac Installer
+    runs-on: macos-15-intel
 
-defaults:
-run:
-working-directory: Speak-or-Spell-by-Wavey-Beat.-main
+    defaults:
+      run:
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
 
-steps:
-- name: Check out source
-uses: actions/checkout@v4
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
 
-- name: Set up Node.js
-uses: actions/setup-node@v4
-with:
-node-version: "20"
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
-- name: Check required files
-run: |
-test -f package.json
-test -f main.js
-test -f preload.js
-test -f index.html
-test -f renderer.js
+      - name: Check required files
+        run: |
+          test -f package.json
+          test -f main.js
+          test -f preload.js
+          test -f index.html
+          test -f renderer.js
 
-- name: Install dependencies
-run: npm install --no-audit --no-fund
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
 
-- name: Build DMG and ZIP for Intel
-run: npm run dist:mac
+      - name: Build Intel Mac DMG and ZIP
+        run: npm run dist:mac
 
-- name: Verify installer files
-run: |
-ls -lh dist
-test -n "$(find dist -maxdepth 1 -name '*.dmg' -print -quit)"
+      - name: Verify installer
+        run: |
+          ls -lh dist
+          test -n "$(find dist -maxdepth 1 -name '*.dmg' -print -quit)"
 
-- name: Upload installer
-uses: actions/upload-artifact@v4
-with:
-name: Speak-or-Spell-by-Wavey-Beat-Intel-Mac
-path: |
-Speak-or-Spell-by-Wavey-Beat.-main/dist/*.dmg
-Speak-or-Spell-by-Wavey-Beat.-main/dist/*.zip
-if-no-files-found: error
-retention-days: 14
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Speak-or-Spell-by-Wavey-Beat-Intel-Mac
+          path: |
+            Speak-or-Spell-by-Wavey-Beat.-main/dist/*.dmg
+            Speak-or-Spell-by-Wavey-Beat.-main/dist/*.zip
+          if-no-files-found: error
+          retention-days: 14
