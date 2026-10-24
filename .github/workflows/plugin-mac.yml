@@ -1,0 +1,60 @@
+
+name: Build Speak or Spell AU and VST3
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "Speak-or-Spell-by-Wavey-Beat.-main/plugin/**"
+      - ".github/workflows/plugin-mac.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-plugins:
+    name: Build Intel Mac Plugins
+    runs-on: macos-15-intel
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          brew install cmake ninja
+
+      - name: Configure plugin project
+        run: |
+          cmake -S "Speak-or-Spell-by-Wavey-Beat.-main/plugin" \
+            -B build-plugin \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+
+      - name: Build plugin formats
+        run: |
+          cmake --build build-plugin --config Release
+
+      - name: Verify AU and VST3
+        run: |
+          find build-plugin -type d \( -name "*.component" -o -name "*.vst3" \) -print
+          test -n "$(find build-plugin -type d -name '*.component' -print -quit)"
+          test -n "$(find build-plugin -type d -name '*.vst3' -print -quit)"
+
+      - name: Package plugins
+        run: |
+          mkdir -p plugin-artifacts
+          find build-plugin -type d \( -name "*.component" -o -name "*.vst3" \) -prune -print0 |
+          while IFS= read -r -d '' bundle; do
+            ditto "$bundle" "plugin-artifacts/$(basename "$bundle")"
+          done
+          ditto -c -k --sequesterRsrc --keepParent plugin-artifacts Speak-or-Spell-AU-VST3-Intel-Mac.zip
+
+      - name: Upload plugin installer files
+        uses: actions/upload-artifact@v4
+        with:
+          name: Speak-or-Spell-AU-VST3-Intel-Mac
+          path: Speak-or-Spell-AU-VST3-Intel-Mac.zip
+          if-no-files-found: error
+          retention-days: 14
