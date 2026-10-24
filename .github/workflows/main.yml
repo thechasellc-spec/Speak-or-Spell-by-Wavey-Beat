@@ -13,15 +13,11 @@ permissions:
 
 jobs:
   build:
-    name: Build Intel Mac Installer
+    name: Build Intel Mac DMG
     runs-on: macos-15-intel
 
-    defaults:
-      run:
-        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
-
     steps:
-      - name: Check out source
+      - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Set up Node.js
@@ -29,7 +25,8 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Check required files
+      - name: Check project files
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
         run: |
           test -f package.json
           test -f main.js
@@ -38,17 +35,20 @@ jobs:
           test -f renderer.js
 
       - name: Install dependencies
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
         run: npm install --no-audit --no-fund
 
       - name: Build Intel Mac DMG and ZIP
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
         run: npm run dist:mac
 
-      - name: Verify installer
+      - name: Verify installer was created
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
         run: |
-          ls -lh dist
-          test -n "$(find dist -maxdepth 1 -name '*.dmg' -print -quit)"
+          ls -lah dist
+          test -n "$(find dist -maxdepth 1 -type f -name '*.dmg' -print -quit)"
 
-      - name: Upload installer
+      - name: Upload Mac installer
         uses: actions/upload-artifact@v4
         with:
           name: Speak-or-Spell-by-Wavey-Beat-Intel-Mac
