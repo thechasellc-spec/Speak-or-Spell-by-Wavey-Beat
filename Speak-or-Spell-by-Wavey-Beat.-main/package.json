@@ -26,6 +26,7 @@
       "index.html",
       "styles.css",
       "renderer.js",
+      "singer-core.js",
       "package.json"
     ],
     "mac": {
