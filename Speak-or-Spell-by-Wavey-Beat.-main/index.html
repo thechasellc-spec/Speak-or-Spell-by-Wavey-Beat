@@ -107,10 +107,14 @@
         <label>Tempo <strong id="tempoValue">96 BPM</strong><input id="tempo" type="range" min="60" max="180" value="96" /></label>
         <label>Voice character
           <select id="voiceStyle">
-            <option value="retro">1978 Retro Robot</option>
-            <option value="masculine">Deep / Masculine</option>
-            <option value="feminine">Bright / Feminine</option>
+            <option value="retro">Retro synth</option>
+            <option value="masculine">Lower / Masculine</option>
+            <option value="feminine">Higher / Feminine</option>
           </select>
+        </label>
+        <label class="full-width">Vocal realism <strong id="realismValue">Human singer AI · not connected</strong>
+          <input id="vocalRealism" type="range" min="0" max="100" value="100" aria-label="Vocal realism from classic synth to human singer" />
+          <span class="small-note">0 = classic electronic synth · 100 = natural human singing. A real human-sounding result requires connecting a singing AI engine; the built-in oscillator cannot provide that quality by itself.</span>
         </label>
         <label>Vowel / formant
           <select id="vowel">
