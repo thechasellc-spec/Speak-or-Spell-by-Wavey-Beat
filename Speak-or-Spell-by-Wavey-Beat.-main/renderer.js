@@ -255,6 +255,15 @@ function speakText() {
 }
 
 function updateLabels() {
+  if ($('realismValue')) {
+    const realism = getRangeValue('vocalRealism', 100);
+    $('realismValue').textContent = realism < 20
+      ? 'Classic synth'
+      : realism < 70
+        ? 'Hybrid target · AI engine needed'
+        : 'Human singer AI · not connected';
+  }
+
   if ($('tempoValue')) {
     $('tempoValue').textContent = (($('tempo') && $('tempo').value) || 96) + ' BPM';
   }
@@ -359,7 +368,7 @@ $('randomBtn') && $('randomBtn').addEventListener('click', () => {
   startVoice('random', note, vowel, 0.7);
 });
 
-['tempo', 'vibrato', 'brightness', 'volume', 'pitchShift'].forEach((id) => {
+['tempo', 'vibrato', 'brightness', 'volume', 'pitchShift', 'vocalRealism'].forEach((id) => {
   const el = $(id);
   if (el) el.addEventListener('input', updateLabels);
 });
@@ -398,7 +407,8 @@ $('saveBtn') && $('saveBtn').addEventListener('click', async () => {
       octave: $('octaveSelect') ? $('octaveSelect').value : '3',
       scale: $('scaleSelect') ? $('scaleSelect').value : 'Chromatic',
       choirVoices: getRangeValue('choirVoices', 1),
-      choirSpread: getRangeValue('choirSpread', 0)
+      choirSpread: getRangeValue('choirSpread', 0),
+      vocalRealism: getRangeValue('vocalRealism', 100)
     }
   };
 
@@ -454,6 +464,7 @@ $('openProjectBtn') && $('openProjectBtn').addEventListener('click', async () =>
     if (settings.scale && $('scaleSelect')) $('scaleSelect').value = settings.scale;
     if (settings.choirVoices != null && $('choirVoices')) $('choirVoices').value = settings.choirVoices;
     if (settings.choirSpread != null && $('choirSpread')) $('choirSpread').value = settings.choirSpread;
+    if (settings.vocalRealism != null && $('vocalRealism')) $('vocalRealism').value = settings.vocalRealism;
     if (data.text != null && $('lyricsEditor')) $('lyricsEditor').value = data.text;
 
     updateLabels();
