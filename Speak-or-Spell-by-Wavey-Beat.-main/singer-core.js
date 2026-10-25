@@ -53,27 +53,51 @@
     return strongest;
   }
 
+  function vowelForChunk(chunk) {
+    const letters = String(chunk || '').toLowerCase().replace(/[^a-z]/g, '');
+    // Use the vowel nucleus in this syllable rather than one vowel chosen for
+    // the entire word. This is still a formant-synth voice, not recorded speech.
+    const match = letters.match(/[aeiouy]/g);
+    const vowel = match && match.length ? match[match.length - 1] : 'a';
+    if (vowel === 'y') return 'i';
+    return VOWEL_MAP[vowel] || 'a';
+  }
+
   function splitIntoSyllables(word) {
-    const letters = word.toLowerCase().replace(/[^a-z]/g, '').split('');
-    if (!letters.length) return ['a'];
+    const letters = String(word || '').toLowerCase().replace(/[^a-z]/g, '');
+    if (!letters) return ['a'];
 
-    const vowels = ['a', 'e', 'i', 'o', 'u'];
-    const groups = [];
-    let current = '';
+    // Approximate syllable nuclei by grouping adjacent vowels and assigning
+    // consonants to their nearest nucleus. This is intentionally lightweight:
+    // English exceptions and pronunciation dictionaries need a speech backend.
+    const nuclei = [];
+    for (let i = 0; i < letters.length; i += 1) {
+      if (!/[aeiouy]/.test(letters[i])) continue;
+      if (i > 0 && /[aeiouy]/.test(letters[i - 1])) continue;
+      nuclei.push(i);
+    }
 
-    for (const ch of letters) {
-      current += ch;
-      if (vowels.includes(ch)) {
-        groups.push(current);
-        current = '';
+    if (!nuclei.length) return [letters];
+    if (nuclei.length > 1 && letters.endsWith('e') && nuclei[nuclei.length - 1] === letters.length - 1) {
+      nuclei.pop();
+    }
+    if (!nuclei.length) return [letters];
+
+    const parts = [];
+    let start = 0;
+    for (let i = 0; i < nuclei.length; i += 1) {
+      const nextNucleus = nuclei[i + 1];
+      if (nextNucleus === undefined) {
+        parts.push(letters.slice(start));
+        break;
       }
+      const consonantRun = nextNucleus - nuclei[i] - 1;
+      const boundary = nuclei[i] + 1 + Math.max(0, Math.floor(consonantRun / 2));
+      parts.push(letters.slice(start, Math.max(start + 1, boundary)));
+      start = Math.max(start + 1, boundary);
     }
 
-    if (current) {
-      groups.push(current);
-    }
-
-    return groups.length ? groups.filter(Boolean) : ['a'];
+    return parts.filter(Boolean);
   }
 
   class WaveySingerEngine {
@@ -148,43 +172,28 @@
 
     parseSyllables(text) {
       const words = text.match(/[A-Za-z]+(?:'[A-Za-z]+)?/g) || [];
-      const baseWords = words.map((word, index) => {
-        const syllables = splitIntoSyllables(word);
-        const vowel = buildVowelMapForWord(word) || syllableForWord(word);
-        return {
-          index,
-          text: word,
-          vowel,
-          syllables,
-          wordLength: word.length,
-          duration: 0.34 + Math.min(0.45, word.length * 0.02)
-        };
-      });
-
       const result = [];
       let timeOffset = 0;
-      for (const wordInfo of baseWords) {
-        const parts = wordInfo.syllables.length ? wordInfo.syllables : [wordInfo.vowel];
-        const syllableDuration = wordInfo.duration / Math.max(1, parts.length);
 
-        for (let i = 0; i < parts.length; i += 1) {
+      words.forEach((word, wordIndex) => {
+        const parts = splitIntoSyllables(word);
+        const syllableDuration = (0.34 + Math.min(0.45, word.length * 0.02)) / Math.max(1, parts.length);
+
+        parts.forEach((part, syllableIndex) => {
           result.push({
             index: result.length,
-            text: wordInfo.text,
-            word: wordInfo.text,
-            vowel: parts[i].includes('a') || parts[i].includes('e') || parts[i].includes('i') || parts[i].includes('o') || parts[i].includes('u')
-              ? wordInfo.vowel
-              : wordInfo.vowel,
-            duration: syllableDuration * (0.8 + (i / Math.max(1, parts.length)) * 0.4),
+            text: word,
+            word,
+            vowel: vowelForChunk(part),
+            duration: syllableDuration,
             start: timeOffset,
-            wordIndex: wordInfo.index,
-            syllableIndex: i,
-            isLastInWord: i === parts.length - 1
+            wordIndex,
+            syllableIndex,
+            isLastInWord: syllableIndex === parts.length - 1
           });
-        }
-
-        timeOffset += wordInfo.duration * 0.82;
-      }
+          timeOffset += syllableDuration * 0.82;
+        });
+      });
 
       return result;
     }
