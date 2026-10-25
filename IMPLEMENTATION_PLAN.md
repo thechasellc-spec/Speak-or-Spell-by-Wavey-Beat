@@ -2,40 +2,37 @@
 
 ## Actual current state
 
-The repository currently contains a compact Electron app under `Speak-or-Spell-by-Wavey-Beat.-main/` with a retro Speak & Spell interface, on-screen keyboard, MIDI detection, and project save/load hooks. The app is visually complete, but the audio engine is not a singing engine: it relies on the browser `speechSynthesis` API when a user clicks the text button, and the playable keys are generated as pitched formant shapers rather than syllable-aligned vocal phrases. This means the current code does not sing lyrics to a melody; it speaks text or plays synthetic note-like timbres without preserving lyric-to-note timing or a song timeline.
+The repository is a hybrid project: it keeps the retro Speak & Spell Electron shell and UI, but the actual singing logic is implemented in a Web Audio engine (`Speak-or-Spell-by-Wavey-Beat.-main/singer-core.js`) and orchestrated from the front-end (`Speak-or-Spell-by-Wavey-Beat.-main/renderer.js`). The project is no longer a speech-only placeholder. The real functional blocker is not the app shell; it is keeping the UI and audio logic fully aligned with the build, audio, and packaging expectations.
 
 ## First functional blocker
 
-The most important blocker is the audio engine itself. `renderer.js` calls `speechSynthesis.speak(...)` for the lyrics workflow and otherwise triggers simple oscillator/formant voice generation that is not tied to lyric syllables, tempo, note durations, or multi-voice harmony. There is no real melody editor, no choir mode, no WAV render path, and no reliable MIDI export or import mapped to a vocal timeline.
+The first major problem was that typed lyrics were still routed through `speechSynthesis`, which is ordinary speech output rather than a sung melodic engine. That made the app feel like a voice demo rather than a lyric-to-singing instrument. The fix is to use a note-scheduled singing engine and keep the project settings wired into the melody playback path.
 
 ## Highest-priority fix implemented
 
-The app has been upgraded from a speech-only prototype to a lyric-to-singing engine prototype built on Web Audio:
+The app is now aligned around a melody-driven singing engine:
 
-- Voice synthesis is now note-scheduled and melody-based rather than text-to-speech driven.
-- Each lyric syllable can map to a note and a vowel phoneme, with per-note duration and timing derived from tempo.
-- Voice profiles now produce clearly different timbres for retro robot, masculine, and feminine voices.
-- Choir-style harmonies can be layered in the same timeline, with independent volume and pan controls.
-- Project save/open preserves lyrics, melody, tempo, voice parameters, and choir settings.
-- WAV export renders a real vocal track instead of silence or placeholder audio.
-- MIDI export writes a standard MIDI file for the generated melody.
-- The on-screen piano keyboard and MIDI input remain available.
+- Lyrics are parsed into syllables and mapped to note timing.
+- Voice styles are distinct for retro, masculine, and feminine timbres.
+- Multiple choir voices can be layered in harmony.
+- Playback is tied to Web Audio scheduling and tempo rather than browser speech synthesis.
+- The app still preserves the interactive retro interface and MIDI/keyboard controls.
 
 ## Remaining gaps and honest limitations
 
-- This is a practical synthesizer implementation in the Electron/Browser environment; it is not a neural singing engine or a full voice model. No external model or runtime has been integrated, and no claim is made that a trained singing model is included.
-- macOS DMG and ZIP packaging is configured in `package.json`, but the repository itself was not built in this environment. Packaging must still be validated on an Intel macOS runner or equivalent environment before claiming a final production-ready release.
-- DAW plugin support remains a separate phase and is not included in this repo yet.
+- This is a practical browser-synth singing engine, not a neural singing model with external runtime downloads.
+- The app exports and saves project state, but packaged DMG generation still needs validation on a proper macOS runner.
+- Native AU/VST3 plugin work remains a separate phase and is not included in this repo.
 
 ## Priority order and statuses
 
-1. Core singing engine — complete as a practical Web Audio synthesis workflow; note-scheduled lyrics with voiced syllables.
-2. Voice character and preset differences — complete; retro, masculine, and feminine presets have distinct timbres.
-3. Choir mode and harmony layering — implemented in the melody engine, with simultaneous voices and volume/pan controls.
-4. Full-song project serialization — implemented for lyrics, melody, tempo, and settings.
-5. MIDI and WAV export — implemented in the browser app as real export functions.
-6. Packaging and release automation — present in GitHub Actions but still needs actual validation on macOS Intel runners.
-7. AU/VST3 plugin phase — intentionally deferred as a separate plugin effort.
+1. Core singing engine — implemented as a practical Web Audio lyric-to-singing engine.
+2. Voice character and preset differences — implemented using distinct waveforms, detune, brightness, and vibrato profiles.
+3. Choir mode and harmony layering — implemented in the singing engine timing model.
+4. Full-song project serialization — supported by the app save/load flow.
+5. MIDI and audio export — supported via the app layer, with export features preserved.
+6. Packaging and release automation — present in GitHub Actions, but actual DMG validation still requires a macOS build environment.
+7. AU/VST3 plugin phase — intentionally deferred.
 
 ## Evidence and files inspected
 
@@ -44,17 +41,21 @@ The app has been upgraded from a speech-only prototype to a lyric-to-singing eng
 - `Speak-or-Spell-by-Wavey-Beat.-main/preload.js`
 - `Speak-or-Spell-by-Wavey-Beat.-main/index.html`
 - `Speak-or-Spell-by-Wavey-Beat.-main/renderer.js`
-- `Speak-or-Spell-by-Wavey-Beat.-main/styles.css`
+- `Speak-or-Spell-by-Wavey-Beat.-main/singer-core.js`
 - `.github/workflows/main.yml`
 - `.github/workflows/plugin-mac.yml`
 
 ## Completion status
 
-The repository is no longer a purely text-to-speech placeholder; it now contains a real melody-driven singing engine prototype with working project state and export functionality in code. Packaging and a full macOS validation pass still need to be run on a macOS Intel environment to verify the DMG/ZIP release path and runtime behavior end-to-end.
+The repo is no longer a pure text-to-speech placeholder. It is centered around a real note-scheduled singing engine and retains the project/workflow structure needed for a playable vocal instrument prototype.
 
 ## Required next steps
 
-- Validate the Electron build and packaging on an Intel macOS runner.
-- Test actual playback and export behavior in the packaged app rather than only in the code.
-- Add a deeper song section model if the project evolves beyond the prototype phase.
-- Continue with DAW plugin work only after the native app is fully validated.
+- Validate the Electron build and packaging on a macOS Intel runner.
+- Smoke-test the sung lyric workflow in the packaged app.
+- Check the exact DMG/ZIP artifact output in CI.
+- Continue with deep musical editing and DAW plugin work only after the standalone app is verified.
+
+## Build note
+
+This repository can prepare and verify the packaging workflow in GitHub Actions, but an actual `.dmg`/`.pkg` must be built on a macOS environment. The API-only session here cannot generate a native macOS installer artifact.

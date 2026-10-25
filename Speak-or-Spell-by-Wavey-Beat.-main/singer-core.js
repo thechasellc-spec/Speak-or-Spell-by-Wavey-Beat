@@ -113,7 +113,7 @@
       const profile = this.getVoiceProfile();
       const choirVoices = Math.max(1, Number(options.choirVoices || 1));
 
-      melody.forEach((syllable, index) => {
+      melody.forEach((syllable) => {
         const baseTime = startAt + syllable.start;
         const leadNote = syllable.note;
         const harmonyOffsets = [0, 4, 7, 12];
@@ -156,7 +156,6 @@
       const sub = ctx.createOscillator();
       const vibratoOsc = ctx.createOscillator();
       const vibratoGain = ctx.createGain();
-      const gainNode = ctx.createGain();
       const panner = ctx.createStereoPanner();
 
       carrier.type = waveform || 'triangle';
