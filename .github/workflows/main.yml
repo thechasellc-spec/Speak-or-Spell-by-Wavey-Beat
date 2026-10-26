@@ -25,12 +25,10 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: "22"
-          cache: npm
-          cache-dependency-path: Speak-or-Spell-by-Wavey-Beat.-main/package-lock.json
 
       - name: Install dependencies
         working-directory: Speak-or-Spell-by-Wavey-Beat.-main
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
       - name: Check JavaScript syntax
         working-directory: Speak-or-Spell-by-Wavey-Beat.-main
