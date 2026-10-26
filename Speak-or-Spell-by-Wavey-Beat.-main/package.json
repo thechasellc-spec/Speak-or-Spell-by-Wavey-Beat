@@ -25,8 +25,10 @@
       "preload.js",
       "index.html",
       "styles.css",
+      "singer-core.js",
       "renderer.js",
-      "package.json"
+      "package.json",
+      "assets/**/*"
     ],
     "mac": {
       "target": [
