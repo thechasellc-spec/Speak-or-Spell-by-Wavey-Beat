@@ -15,6 +15,8 @@
         <p>BY WAVEY BEAT · PLAYABLE VOCAL SYNTH</p>
       </div>
       <div class="top-actions">
+        <button id="openLyrics" type="button">LYRICS</button>
+        <button id="openSettings" type="button">SETTINGS</button>
         <button id="saveBtn" type="button">SAVE</button>
         <button id="openProjectBtn" type="button">OPEN</button>
       </div>
@@ -32,6 +34,7 @@
           <div class="lcd-status">
             <span id="modeReadout">SING MODE</span>
             <span id="statusText">READY</span>
+            <span id="voiceReadout">VOICE: RETRO ROBOT</span>
           </div>
           <div id="lcdText" class="lcd-text">HELLO, SINGER!</div>
           <div id="noteReadout" class="note-readout">NOTE: C4</div>
@@ -104,6 +107,7 @@
       </div>
 
       <div class="settings-grid">
+        <label>Singing character mix <strong id="singValue">65%</strong><input id="singMix" type="range" min="0" max="100" value="65" /></label>
         <label>Tempo <strong id="tempoValue">96 BPM</strong><input id="tempo" type="range" min="60" max="180" value="96" /></label>
         <label>Voice character
           <select id="voiceStyle">
