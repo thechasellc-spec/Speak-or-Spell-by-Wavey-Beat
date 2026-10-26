@@ -1,4 +1,5 @@
 name: Speak or Spell Mac Build
+# Rebuild requested 2026-10-26: produce a fresh Intel DMG artifact
 
 on:
   workflow_dispatch:
