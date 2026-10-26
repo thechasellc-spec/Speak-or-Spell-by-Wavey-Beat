@@ -1,4 +1,4 @@
-name: Speak or Spell Source Checks
+name: Speak or Spell Mac Build
 
 on:
   workflow_dispatch:
@@ -14,21 +14,23 @@ permissions:
   contents: read
 
 jobs:
-  source-checks:
-    name: Validate app source
+  build-mac:
+    name: Validate source and build Intel macOS installer
     runs-on: macos-15
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: Speak-or-Spell-by-Wavey-Beat.-main/package-lock.json
 
       - name: Install dependencies
         working-directory: Speak-or-Spell-by-Wavey-Beat.-main
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Check JavaScript syntax
         working-directory: Speak-or-Spell-by-Wavey-Beat.-main
@@ -38,9 +40,25 @@ jobs:
           node --check renderer.js
           node --check singer-core.js
 
-      - name: Verify packaged singing engine
+      - name: Verify app assets
         working-directory: Speak-or-Spell-by-Wavey-Beat.-main
         run: |
           node -e "const p=require('./package.json'); if(!p.build.files.includes('singer-core.js')) { console.error('singer-core.js missing from packaged files'); process.exit(1); }"
           test -f singer-core.js
           grep -q 'singer-core.js' index.html
+          grep -q 'generateLocalAIVocal' preload.js
+          grep -q 'aiVocalGenerateBtn' index.html
+
+      - name: Build Intel Mac DMG and ZIP
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
+        run: npm run dist:mac
+
+      - name: Upload Mac installers
+        uses: actions/upload-artifact@v6
+        with:
+          name: Speak-or-Spell-by-Wavey-Beat-macOS-Intel
+          path: |
+            Speak-or-Spell-by-Wavey-Beat.-main/dist/*.dmg
+            Speak-or-Spell-by-Wavey-Beat.-main/dist/*.zip
+          if-no-files-found: error
+          retention-days: 14
