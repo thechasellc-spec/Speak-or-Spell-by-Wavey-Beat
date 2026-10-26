@@ -1,7 +1,7 @@
 {
   "name": "speak-or-spell-wavey-beat",
-  "version": "0.2.0",
-  "description": "Retro Speak & Spell-style playable vocal synthesizer with MIDI input",
+  "version": "0.2.1",
+  "description": "Speak or Spell by Wavey Beat — lyrics-to-melody vocal synth prototype with voice styles, MIDI input, and choir layering",
   "main": "main.js",
   "author": "Wavey Beat",
   "license": "UNLICENSED",
@@ -26,7 +26,8 @@
       "index.html",
       "styles.css",
       "renderer.js",
-      "package.json"
+      "package.json",
+      "singer-core.js"
     ],
     "mac": {
       "target": [
