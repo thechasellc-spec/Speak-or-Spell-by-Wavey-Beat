@@ -1,87 +1,74 @@
 name: Speak or Spell Mac Build
 
 on:
-workflow_dispatch:
-push:
-branches:
-- main
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - fix/packaging-and-build-workflow
 
 permissions:
-contents: read
+  contents: read
 
 jobs:
-build:
-runs-on: macos-15
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
 
-steps:
-  - name: Check out repository
-    uses: actions/checkout@v4
-  - name: Set up Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: "22"
-  - name: Inspect project files
-    run: |
-      echo "Checking project structure"
-      ls -la
-      find . -maxdepth 5 -type f \( -name package.json -o -name CMakeLists.txt -o -name Makefile \) -not -path "./node_modules/*" -print
-  - name: Locate application configuration
-    id: project
-    shell: bash
-    run: |
-      PACKAGE_FILE="$(find . -maxdepth 5 -type f -name package.json -not -path "./node_modules/*" -print -quit)"
-      if [ -n "$PACKAGE_FILE" ]; then
-        echo "package_dir=$(dirname "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
-        echo "found_package=true" >> "$GITHUB_OUTPUT"
-      else
-        echo "found_package=false" >> "$GITHUB_OUTPUT"
-        echo "No package.json found."
-      fi
-  - name: Install dependencies
-    if: steps.project.outputs.found_package == 'true'
-    working-directory: ${{ steps.project.outputs.package_dir }}
-    run: |
-      if [ -f package-lock.json ]; then
-        npm ci --no-audit --no-fund
-      else
-        npm install --no-audit --no-fund
-      fi
-  - name: Build Mac application
-    if: steps.project.outputs.found_package == 'true'
-    working-directory: ${{ steps.project.outputs.package_dir }}
-    run: |
-      node -e "console.log(JSON.stringify(require('./package.json').scripts || {}, null, 2))"
-      if node -e "process.exit(require('./package.json').scripts?.['dist:mac'] ? 0 : 1)"; then
-        npm run dist:mac
-      elif node -e "process.exit(require('./package.json').scripts?.['electron:build'] ? 0 : 1)"; then
-        npm run electron:build
-      elif node -e "process.exit(require('./package.json').scripts?.['build'] ? 0 : 1)"; then
-        npm run build
-      else
-        echo "No recognized build script found. Check package.json scripts."
-        exit 1
-      fi
-  - name: Verify installer
-    if: steps.project.outputs.found_package == 'true'
-    run: |
-      find . -type f \( -name "*.dmg" -o -name "*.pkg" \) -not -path "./node_modules/*" -print
-      if ! find . -type f \( -name "*.dmg" -o -name "*.pkg" \) -not -path "./node_modules/*" | grep -q .; then
-        echo "No DMG or PKG was generated. The build may need a project-specific packaging command."
-        exit 1
-      fi
-  - name: Upload Mac installer
-    if: steps.project.outputs.found_package == 'true'
-    uses: actions/upload-artifact@v4
-    with:
-      name: Speak-or-Spell-by-Wavey-Beat-Mac-Installer
-      path: |
-        **/*.dmg
-        **/*.pkg
-      if-no-files-found: error
-      retention-days: 14
-  - name: Report unsupported project layout
-    if: steps.project.outputs.found_package != 'true'
-    run: |
-      echo "The repository does not contain a package.json in the searched directories."
-      echo "The correct build system must be identified before an installer can be produced."
-      exit 1
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Locate app
+        id: app
+        shell: bash
+        run: |
+          APP_DIR="Speak-or-Spell-by-Wavey-Beat.-main"
+          if [ ! -f "$APP_DIR/package.json" ]; then
+            echo "::error::Expected app package not found at $APP_DIR/package.json"
+            find . -maxdepth 4 -name package.json -print
+            exit 1
+          fi
+          echo "dir=$APP_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        working-directory: ${{ steps.app.outputs.dir }}
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Verify packaged singer engine is included
+        working-directory: ${{ steps.app.outputs.dir }}
+        run: |
+          node -e "const p=require('./package.json'); if(!p.build.files.includes('singer-core.js')) { console.error('singer-core.js missing from build.files'); process.exit(1) }"
+          test -f singer-core.js
+          test -f index.html
+          grep -q 'singer-core.js' index.html
+
+      - name: Build Intel Mac DMG and ZIP
+        working-directory: ${{ steps.app.outputs.dir }}
+        run: npm run dist:mac
+
+      - name: Verify installer outputs
+        working-directory: ${{ steps.app.outputs.dir }}
+        run: |
+          ls -lh dist
+          test -n "$(find dist -maxdepth 1 -type f -name '*.dmg' -print -quit)"
+          test -n "$(find dist -maxdepth 1 -type f -name '*.zip' -print -quit)"
+
+      - name: Upload Intel Mac installer and app archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: Speak-or-Spell-by-Wavey-Beat-Intel-Mac
+          path: |
+            Speak-or-Spell-by-Wavey-Beat.-main/dist/*.dmg
+            Speak-or-Spell-by-Wavey-Beat.-main/dist/*.zip
+          if-no-files-found: error
+          retention-days: 14

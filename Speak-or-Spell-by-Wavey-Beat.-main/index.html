@@ -1,162 +1,23 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Speak or Spell by Wavey Beat</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <main class="app-shell">
-    <header class="topbar">
-      <div class="brand-mark">WB</div>
-      <div class="brand-copy">
-        <h1>SPEAK <span>OR</span> SPELL</h1>
-        <p>BY WAVEY BEAT · PLAYABLE VOCAL SYNTH</p>
-      </div>
-      <div class="top-actions">
-        <button id="saveBtn" type="button">SAVE</button>
-        <button id="openProjectBtn" type="button">OPEN</button>
-      </div>
-    </header>
-
-    <section class="device">
-      <div class="device-top">
-        <span class="screw"></span>
-        <div class="device-logo">SPEAK <b>&</b> SPELL <small>WAVEY BEAT EDITION</small></div>
-        <span class="screw"></span>
-      </div>
-
-      <div class="lcd-frame">
-        <div class="lcd" aria-live="polite">
-          <div class="lcd-status">
-            <span id="modeReadout">SING MODE</span>
-            <span id="statusText">READY</span>
-          </div>
-          <div id="lcdText" class="lcd-text">HELLO, SINGER!</div>
-          <div id="noteReadout" class="note-readout">NOTE: C4</div>
-        </div>
-      </div>
-
-      <div class="device-label">PRESS A LETTER · PLAY A NOTE · MAKE IT SING</div>
-      <div id="letterPad" class="letter-pad" aria-label="Speak and Spell letter keypad"></div>
-
-      <div class="device-functions">
-        <button id="speakBtn" type="button">▶ SING TEXT</button>
-        <button id="stopBtn" type="button">■ STOP</button>
-        <button id="randomBtn" type="button">✦ SURPRISE ME</button>
-      </div>
-    </section>
-
-    <section class="play-panel">
-      <div class="panel-heading">
-        <div>
-          <span class="eyebrow">PLAYABLE VOICE</span>
-          <h2>Vocal keyboard</h2>
-        </div>
-        <div class="key-tools">
-          <label>KEY
-            <select id="keySelect">
-              <option>C</option>
-              <option>C♯</option>
-              <option>D</option>
-              <option>D♯</option>
-              <option>E</option>
-              <option>F</option>
-              <option>F♯</option>
-              <option>G</option>
-              <option>G♯</option>
-              <option>A</option>
-              <option>A♯</option>
-              <option>B</option>
-            </select>
-          </label>
-          <label>OCT
-            <select id="octaveSelect">
-              <option value="2">2</option>
-              <option value="3" selected>3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <p class="helper">Click a key or use a connected MIDI keyboard. Each note sustains while held; vowels change the vocal shape.</p>
-      <div id="piano" class="piano" aria-label="Playable piano keyboard"></div>
-
-      <div class="keyboard-footer">
-        <div>
-          <span class="live-dot"></span>
-          <span id="midiStatus">MIDI: checking support…</span>
-        </div>
-        <button id="midiBtn" class="text-button" type="button">Connect MIDI</button>
-      </div>
-    </section>
-
-    <section id="settingsPanel" class="settings-panel hidden">
-      <div class="panel-heading">
-        <div>
-          <span class="eyebrow">TUCKED AWAY, JUST LIKE YOU ASKED</span>
-          <h2>Voice & sound settings</h2>
-        </div>
-        <button id="closeSettings" class="close-button" type="button">CLOSE</button>
-      </div>
-
-      <div class="settings-grid">
-        <label>Tempo <strong id="tempoValue">96 BPM</strong><input id="tempo" type="range" min="60" max="180" value="96" /></label>
-        <label>Voice character
-          <select id="voiceStyle">
-            <option value="retro">1978 Retro Robot</option>
-            <option value="masculine">Deep / Masculine</option>
-            <option value="feminine">Bright / Feminine</option>
-          </select>
-        </label>
-        <label>Vowel / formant
-          <select id="vowel">
-            <option value="a">AH</option>
-            <option value="e">EH</option>
-            <option value="i">EE</option>
-            <option value="o">OH</option>
-            <option value="u">OO</option>
-          </select>
-        </label>
-        <label>Voice brightness <strong id="brightValue">55%</strong><input id="brightness" type="range" min="0" max="100" value="55" /></label>
-        <label>Output level <strong id="volumeValue">70%</strong><input id="volume" type="range" min="0" max="100" value="70" /></label>
-        <label>Vibrato <strong id="vibratoValue">18%</strong><input id="vibrato" type="range" min="0" max="100" value="18" /></label>
-        <label>Pitch range <strong id="pitchValue">0 st</strong><input id="pitchShift" type="range" min="-12" max="12" value="0" /></label>
-        <label>Choir voices <strong id="choirValue">1</strong><input id="choirVoices" type="range" min="1" max="5" value="1" /></label>
-        <label>Choir spread <strong id="choirSpreadValue">0¢</strong><input id="choirSpread" type="range" min="0" max="24" value="0" /></label>
-        <label>Musical scale
-          <select id="scaleSelect">
-            <option>Chromatic</option>
-            <option>Major</option>
-            <option>Minor</option>
-          </select>
-        </label>
-      </div>
-      <p class="small-note">This engine schedules syllables to pitched notes, keeps them aligned to tempo, and layers harmony when choir voices are enabled.</p>
-    </section>
-
-    <section id="lyricsPanel" class="lyrics-panel hidden">
-      <div class="panel-heading">
-        <div>
-          <span class="eyebrow">TEXT / SAMPLE SOURCE</span>
-          <h2>Lyrics to sing</h2>
-        </div>
-        <button id="closeLyrics" class="close-button" type="button">CLOSE</button>
-      </div>
-      <textarea id="lyricsEditor" rows="10" placeholder="Enter lyrics here — each word becomes a sung syllable in tempo.">Hello Wavey Beat</textarea>
-      <div class="panel-actions">
-        <button id="previewText" type="button">Preview</button>
-        <button id="exportTxtBtn" type="button">Export TXT</button>
-      </div>
-    </section>
-
-    <footer>WAVEY BEAT · SPEAK OR SPELL <span id="footerBuild">EARLY PLAYABLE BUILD · 0.2.0</span></footer>
-  </main>
-
-  <script src="singer-core.js"></script>
-  <script src="renderer.js"></script>
-</body>
-</html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#07101f"><title>Speak or Spell by Wavey Beat</title><link rel="stylesheet" href="styles.css"></head>
+<body><main class="app-shell">
+<header class="topbar"><div class="brand-icon">♫</div><div class="brand-copy"><h1>Speak or Spell</h1><p>by Wavey Beat · AI VOCAL LAB</p></div><div class="top-actions"><button id="openLyrics" class="outline">LYRICS</button><button id="openSettings" class="outline">SOUND LAB</button><button id="openProjectBtn" class="outline">OPEN</button><button id="saveBtn" class="accent">SAVE</button></div></header>
+<div class="tagline"><div><span class="eyebrow">TYPE YOUR WORDS. HEAR THE MUSIC.</span><h2>Your voice. Your music.</h2></div><span class="ai-pill"><i></i> AI VOCAL <small>ENGINE PREVIEW</small></span></div>
+<section class="hero-grid">
+<div class="device-wrap"><div class="device">
+<div class="device-top"><span class="screw"></span><div class="device-logo">SPEAK <b>OR</b> SPELL<small>WAVEY BEAT EDITION</small></div><span class="screw"></span></div>
+<div class="lcd-frame"><div class="lcd" aria-live="polite"><div class="lcd-status"><span id="modeReadout">SING MODE</span><span id="statusText">READY</span></div><div id="lcdText" class="lcd-text">YOUR VOICE. YOUR MUSIC.</div><div class="waveform" aria-hidden="true"></div><div class="lcd-bottom"><span id="noteReadout">NOTE: C4</span><span id="voiceReadout">VOICE: CLASSIC</span></div></div></div>
+<div class="device-label">TYPE IT · PLAY IT · SING IT</div><div id="letterPad" class="letter-pad" aria-label="Letter keypad"></div>
+<div class="device-functions"><button id="speakBtn" class="accent">▶ SING LYRICS</button><button id="stopBtn">■ STOP</button><button id="randomBtn">✦ SURPRISE</button></div>
+</div></div>
+<div class="control-stack">
+<section class="control-card realism-card"><div class="card-top"><div><span class="eyebrow">VOCAL CHARACTER</span><h2>Make it sing</h2></div><span class="status-pill">LIVE CONTROL</span></div><div class="realism-labels"><span>ROBOTIC</span><span>HUMAN-LIKE TARGET</span></div><input id="singMix" class="realism-slider" type="range" min="0" max="100" value="58" aria-label="Robotic to human-like vocal character"><div class="range-footer"><span>Classic Speak & Spell</span><strong id="singValue">58%</strong></div><p class="muted">Shapes the electronic vocal synth. A natural human AI singing model is a separate engine still to be integrated.</p></section>
+<section class="control-card"><div class="card-top"><div><span class="eyebrow">VOICE LIBRARY</span><h2>Choose a character</h2></div></div><div class="voice-library"><button class="voice-chip selected" data-voice="retro"><span class="voice-avatar">R</span><span><b>Retro Bot</b><small>Classic electronic</small></span></button><button class="voice-chip" data-voice="masculine"><span class="voice-avatar blue">M</span><span><b>Deep Voice</b><small>Lower register</small></span></button><button class="voice-chip" data-voice="feminine"><span class="voice-avatar pink">F</span><span><b>Bright Voice</b><small>Higher register</small></span></button></div>
+<div class="mini-row"><label>KEY<select id="keySelect"><option>C</option><option>C♯</option><option>D</option><option>D♯</option><option>E</option><option>F</option><option>F♯</option><option>G</option><option>G♯</option><option>A</option><option>A♯</option><option>B</option></select></label><label>OCTAVE<select id="octaveSelect"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></label><label>SCALE<select id="scaleSelect"><option>Chromatic</option><option>Major</option><option>Minor</option></select></label></div></section>
+<section class="control-card"><div class="card-top"><div><span class="eyebrow">PERFORMANCE</span><h2>Choir & MIDI</h2></div><span class="live-indicator"><i></i> READY</span></div><div class="choir-row"><label for="choirVoices">Choir layers <strong id="choirValue">1</strong></label><input id="choirVoices" type="range" min="1" max="5" value="1"></div><div class="choir-row"><label for="choirSpread">Harmony spread <strong id="choirSpreadValue">0¢</strong></label><input id="choirSpread" type="range" min="0" max="24" value="0"></div><div class="midi-row"><span id="midiStatus">MIDI: checking support…</span><button id="midiBtn" class="outline">CONNECT MIDI</button></div></section></div></section>
+<section class="play-panel"><div class="panel-heading"><div><span class="eyebrow">PLAYABLE VOCAL INSTRUMENT</span><h2>Keyboard</h2></div><span class="keyboard-hint">Hold a key to sustain · Use MIDI for performance</span></div><div id="piano" class="piano" aria-label="Playable piano keyboard"></div></section>
+<section id="lyricsPanel" class="control-card lyrics-panel hidden"><div class="panel-heading"><div><span class="eyebrow">TEXT TO VOCAL PERFORMANCE</span><h2>Your lyrics</h2></div><button id="closeLyrics" class="outline">CLOSE</button></div><textarea id="lyricsEditor" rows="5" placeholder="Write your lyrics here…">Dreams are just the start
+Baby we can go so far
+Together we'll be alright</textarea><div class="panel-actions"><button id="previewText" class="accent">▶ PREVIEW TEXT</button><button id="exportTxtBtn" class="outline">EXPORT LYRICS</button></div></section>
+<section id="settingsPanel" class="control-card settings-panel hidden"><div class="panel-heading"><div><span class="eyebrow">ADVANCED CONTROLS</span><h2>Sound lab</h2></div><button id="closeSettings" class="outline">CLOSE</button></div><div class="settings-grid"><label>Tempo <strong id="tempoValue">96 BPM</strong><input id="tempo" type="range" min="60" max="180" value="96"></label><label>Voice style<select id="voiceStyle"><option value="retro">1978 Retro Robot</option><option value="masculine">Deep / Masculine</option><option value="feminine">Bright / Feminine</option></select></label><label>Vowel<select id="vowel"><option value="a">AH</option><option value="e">EH</option><option value="i">EE</option><option value="o">OH</option><option value="u">OO</option></select></label><label>Brightness <strong id="brightValue">55%</strong><input id="brightness" type="range" min="0" max="100" value="55"></label><label>Output level <strong id="volumeValue">70%</strong><input id="volume" type="range" min="0" max="100" value="70"></label><label>Vibrato <strong id="vibratoValue">18%</strong><input id="vibrato" type="range" min="0" max="100" value="18"></label><label>Pitch shift <strong id="pitchValue">0 st</strong><input id="pitchShift" type="range" min="-12" max="12" value="0"></label></div><p class="muted">The current sound engine is a playable electronic vocal synth, not a connected neural human-singing engine yet.</p></section>
+<footer><span>WAVEY BEAT · SPEAK OR SPELL</span><span>RED NEON CONCEPT · BUILD 0.5.0 DESIGN DIRECTION</span></footer></main><script src="singer-core.js"></script><script src="renderer.js"></script></body></html>
