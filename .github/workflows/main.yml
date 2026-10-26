@@ -1,6 +1,12 @@
 name: Speak or Spell Manual Mac Build
 
 on:
+  push:
+    branches:
+      - feature/local-neural-engine-bridge
+    paths:
+      - "Speak-or-Spell-by-Wavey-Beat.-main/**"
+      - ".github/workflows/main.yml"
   workflow_dispatch:
 
 permissions:
