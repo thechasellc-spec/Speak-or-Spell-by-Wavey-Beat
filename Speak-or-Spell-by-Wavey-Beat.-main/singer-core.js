@@ -111,6 +111,12 @@
 
       const startAt = this.audioContext.currentTime + 0.05;
       const profile = this.getVoiceProfile();
+      if (Number.isFinite(Number(options.brightness)))
+        profile.brightness = clamp(Number(options.brightness), 0, 1);
+      if (Number.isFinite(Number(options.vibrato)))
+        profile.vibrato = clamp(Number(options.vibrato), 0, 0.04);
+      if (Number.isFinite(Number(options.singingMix)))
+        profile.gain = 0.24 + clamp(Number(options.singingMix), 0, 1) * 0.28;
       const choirVoices = Math.max(1, Number(options.choirVoices || 1));
 
       melody.forEach((syllable, index) => {
