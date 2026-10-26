@@ -28,4 +28,4 @@ jobs:
         with:
           python-version: "3.11"
       - name: Test worker protocol and missing-engine behavior
-        run: python -m unittest Speak-or-Spell-by-Wavey-Beat.-main/neural-engine/test_worker.py
+        run: python Speak-or-Spell-by-Wavey-Beat.-main/neural-engine/test_worker.py
