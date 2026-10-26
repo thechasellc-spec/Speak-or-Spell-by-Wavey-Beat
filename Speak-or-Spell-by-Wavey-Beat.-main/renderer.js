@@ -261,7 +261,7 @@ function updateLabels() {
       ? 'Classic synth'
       : realism < 70
         ? 'Hybrid target · AI engine needed'
-        : 'Human singer AI · not connected';
+        : 'Local AI song generator · separate';
   }
 
   if ($('tempoValue')) {
@@ -476,6 +476,58 @@ $('openProjectBtn') && $('openProjectBtn').addEventListener('click', async () =>
 
   alert('Project opening is available in the desktop app.');
 });
+
+
+const aiGenerateButton = $('aiVocalGenerateBtn');
+if (aiGenerateButton) {
+  aiGenerateButton.addEventListener('click', async () => {
+    const lyrics = ($('lyricsEditor') && $('lyricsEditor').value || '').trim();
+    const message = $('aiVocalMessage');
+    const status = $('aiEngineStatus');
+    const audio = $('aiVocalAudio');
+    const download = $('aiVocalDownload');
+    if (!lyrics) {
+      if (message) message.textContent = 'Enter your lyrics in the Lyrics to sing panel first.';
+      return;
+    }
+    if (!window.speakSpell || !window.speakSpell.generateLocalAIVocal) {
+      if (message) message.textContent = 'This AI connection is available in the installed desktop app.';
+      return;
+    }
+    aiGenerateButton.disabled = true;
+    aiGenerateButton.textContent = 'GENERATING…';
+    if (message) message.textContent = 'Connecting to the free local AI engine. Generation can take a few minutes on some computers.';
+    if (status) status.textContent = 'Connecting to local engine…';
+    if (download) download.hidden = true;
+    try {
+      const result = await window.speakSpell.generateLocalAIVocal({
+        lyrics,
+        style: ($('aiVocalStyle') && $('aiVocalStyle').value) || 'upbeat pop',
+        duration: Number(($('aiVocalDuration') && $('aiVocalDuration').value) || 30),
+        bpm: getRangeValue('tempo', 96)
+      });
+      if (!result || !result.ok) throw new Error(result && result.error || 'Could not generate an AI vocal.');
+      if (audio) {
+        audio.src = result.audioDataUrl;
+        audio.hidden = false;
+        audio.load();
+      }
+      if (download) {
+        download.href = result.audioDataUrl;
+        download.hidden = false;
+      }
+      if (message) message.textContent = 'AI vocal ready. Use the audio player to listen, or download the MP3.';
+      if (status) status.textContent = 'Local AI connected · vocal ready';
+      if ($('statusText')) $('statusText').textContent = 'AI VOCAL READY';
+    } catch (error) {
+      if (message) message.textContent = error && error.message ? error.message : 'Local AI generation failed.';
+      if (status) status.textContent = 'Local AI unavailable';
+    } finally {
+      aiGenerateButton.disabled = false;
+      aiGenerateButton.textContent = '♪ GENERATE AI VOCAL';
+    }
+  });
+}
 
 makeLetterPad();
 makePiano();
