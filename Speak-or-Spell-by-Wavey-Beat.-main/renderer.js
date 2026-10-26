@@ -2,10 +2,10 @@ const $ = id => document.getElementById(id);
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const noteNames = ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","A♯","B"];
 const vowelForLetter = {A:"a",B:"e",C:"a",D:"e",E:"i",F:"e",G:"a",H:"a",I:"i",J:"i",K:"e",L:"e",M:"a",N:"e",O:"o",P:"e",Q:"u",R:"a",S:"e",T:"i",U:"u",V:"i",W:"u",X:"e",Y:"i",Z:"e"};
-let audioCtx = null, master = null, activeVoices = new Map(), midiAccess = null, lastNote = 60;
+let audioCtx = null, master = null, activeVoices = new Map(), midiAccess = null, lastNote = 60, singerEngine = null;
 let projectSaved = false;
 function audioReady(){
-  if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();master=audioCtx.createGain();master.gain.value=Number($('volume').value)/100;master.connect(audioCtx.destination);}
+  if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();master=audioCtx.createGain();master.gain.value=Number($('volume').value)/100;master.connect(audioCtx.destination);if(window.WaveySingerEngine)singerEngine=new window.WaveySingerEngine(audioCtx,master);}
   if(audioCtx.state==="suspended") audioCtx.resume();
   return audioCtx;
 }
@@ -48,7 +48,7 @@ function stopVoice(id,release=0.12){
   [v.osc,v.sub,v.vib].forEach(o=>{try{o.stop(now+release+0.08)}catch(e){}});
   activeVoices.delete(id);
 }
-function stopAll(){for(const id of [...activeVoices.keys()])stopVoice(id,0.06);if("speechSynthesis"in window)speechSynthesis.cancel();$('statusText').textContent="STOPPED";setLCD("READY");}
+function stopAll(){if(singerEngine)singerEngine.stop();for(const id of [...activeVoices.keys()])stopVoice(id,0.06);if("speechSynthesis"in window)speechSynthesis.cancel();$('statusText').textContent="STOPPED";setLCD("READY");}
 function makeLetterPad(){
   const pad=$('letterPad');
   letters.forEach(letter=>{const b=document.createElement("button");b.className="letter-key";b.textContent=letter;b.dataset.letter=letter;b.setAttribute("aria-label","Play letter "+letter);b.addEventListener("pointerdown",e=>{e.preventDefault();const v=vowelForLetter[letter]||"a";$('vowel').value=v;const note=60+letters.indexOf(letter)%12+Number($('octaveSelect').value-4)*12;startVoice("letter-"+letter,note,v,0.8);setLCD(letter,note);b.classList.add("pressed")});const release=()=>{stopVoice("letter-"+letter);b.classList.remove("pressed")};b.addEventListener("pointerup",release);b.addEventListener("pointerleave",release);b.addEventListener("pointercancel",release);pad.appendChild(b);});
@@ -68,15 +68,40 @@ function makePiano(){
   });
 }
 function speakText(){
-  const text=$('lyricsEditor').value.trim();if(!text){setLCD("TYPE TEXT FIRST");return;}
-  if(!("speechSynthesis"in window)){setLCD("SPEECH NOT AVAILABLE");return;}
-  stopAll();const u=new SpeechSynthesisUtterance(text);const style=$('voiceStyle').value;
-  u.rate=0.78+Number($('singMix').value)/100*0.42;u.pitch=style==="masculine"?0.65:style==="feminine"?1.35:0.9;
-  const voices=speechSynthesis.getVoices();const preferred=voices.find(v=>/en/i.test(v.lang));if(preferred)u.voice=preferred;
-  u.onstart=()=>{$('statusText').textContent="SPEAKING";setLCD("SPEAKING…")};u.onend=()=>{$('statusText').textContent="READY";setLCD("READY")};speechSynthesis.speak(u);
+  const text=$('lyricsEditor').value.trim();
+  if(!text){setLCD("TYPE LYRICS FIRST");return;}
+  audioReady();
+  if(!window.WaveySingerEngine || !singerEngine){
+    setLCD("SINGING ENGINE UNAVAILABLE");
+    $('statusText').textContent="ERROR";
+    return;
+  }
+  stopAll();
+  singerEngine.setVoiceStyle($('voiceStyle').value);
+  const keyOffset=Math.max(0,noteNames.indexOf($('keySelect').value));
+  const baseNote=Math.max(36,Math.min(84,60+keyOffset+Number($('pitchShift').value)));
+  const tempo=Number($('tempo').value||96);
+  const melody=singerEngine.renderSong(text,{
+    tempo, baseNote,
+    choirVoices:Number($('choirVoices').value||1),
+    spread:Number($('choirSpread').value||0),
+    brightness:Number($('brightness').value)/100,
+    vibrato:Number($('vibrato').value)/100,
+    singingMix:Number($('singMix').value)/100
+  });
+  if(!melody.length){setLCD("TYPE LYRICS FIRST");return;}
+  $('statusText').textContent="SINGING";
+  setLCD("SINGING LYRICS",baseNote);
+  const endSeconds=Math.max(...melody.map(n=>n.start+n.duration))+0.8;
+  window.setTimeout(()=>{
+    if($('statusText').textContent==="SINGING"){
+      $('statusText').textContent="READY";
+      setLCD("VOCAL RENDER READY");
+    }
+  },endSeconds*1000);
 }
 function updateLabels(){
-  $('singValue').textContent=$('singMix').value+"%";$('pitchValue').textContent=Number($('pitchShift').value)>0?"+"+$('pitchShift').value+" st":$('pitchShift').value+" st";
+  $('singValue').textContent=$('singMix').value+"%";if($('tempoValue'))$('tempoValue').textContent=$('tempo').value+" BPM";if($('choirValue'))$('choirValue').textContent=$('choirVoices').value;if($('choirSpreadValue'))$('choirSpreadValue').textContent=$('choirSpread').value+"¢";$('pitchValue').textContent=Number($('pitchShift').value)>0?"+"+$('pitchShift').value+" st":$('pitchShift').value+" st";
   $('vibratoValue').textContent=$('vibrato').value+"%";$('brightValue').textContent=$('brightness').value+"%";$('volumeValue').textContent=$('volume').value+"%";
   $('voiceReadout').textContent="VOICE: "+$('voiceStyle').selectedOptions[0].text.toUpperCase().slice(0,12);
   if(master&&audioCtx)master.gain.setTargetAtTime(Number($('volume').value)/100,audioCtx.currentTime,0.02);
@@ -88,7 +113,7 @@ $('openLyrics').addEventListener("click",()=>{$('lyricsPanel').classList.remove(
 $('closeLyrics').addEventListener("click",()=>togglePanel("lyricsPanel"));
 $('speakBtn').addEventListener("click",speakText);$('previewText').addEventListener("click",speakText);$('stopBtn').addEventListener("click",stopAll);
 $('randomBtn').addEventListener("click",()=>{const vowels=["a","e","i","o","u"];const v=vowels[Math.floor(Math.random()*vowels.length)];$('vowel').value=v;const note=48+Math.floor(Math.random()*25);startVoice("surprise",note,v,0.85);setTimeout(()=>stopVoice("surprise",0.25),650);setLCD("SURPRISE: "+v.toUpperCase(),note)});
-['singMix','pitchShift','vibrato','brightness','volume'].forEach(id=>$(id).addEventListener("input",updateLabels));
+['singMix','pitchShift','vibrato','brightness','volume','tempo','choirVoices','choirSpread'].forEach(id=>$(id).addEventListener("input",updateLabels));
 $('voiceStyle').addEventListener("change",updateLabels);
 $('vowel').addEventListener("change",()=>setLCD("VOWEL: "+$('vowel').value.toUpperCase()));
 $('octaveSelect').addEventListener("change",makePiano);
