@@ -94,6 +94,45 @@
       </div>
     </section>
 
+
+    <section class="play-panel" id="aiVocalPanel">
+      <div class="panel-heading">
+        <div>
+          <span class="eyebrow">FREE LOCAL AI · NO PAID API</span>
+          <h2>Human-style AI vocal test</h2>
+        </div>
+        <span id="aiEngineStatus" class="small-note">Local engine not checked</span>
+      </div>
+      <p class="helper">Generate a sung vocal from your lyrics using ACE-Step 1.5 running on this computer. This makes a complete vocal/music clip, not a note-by-note MIDI instrument. The local engine must be installed and running first.</p>
+      <div class="settings-grid">
+        <label>Style / sound
+          <select id="aiVocalStyle">
+            <option value="upbeat pop">Upbeat pop hook</option>
+            <option value="pop rock, live drums, emotional male lead vocal">Pop-rock male lead</option>
+            <option value="warm female pop vocal, bright modern production">Female pop lead</option>
+            <option value="R&B, soulful expressive lead vocal, rich harmonies">Soulful R&amp;B</option>
+            <option value="anthemic pop choir, layered vocal harmonies">Choir / layered harmonies</option>
+            <option value="country pop, warm natural lead vocal">Country-pop lead</option>
+          </select>
+        </label>
+        <label>Clip length
+          <select id="aiVocalDuration">
+            <option value="15">15 seconds</option>
+            <option value="30" selected>30 seconds</option>
+            <option value="45">45 seconds</option>
+            <option value="60">60 seconds</option>
+            <option value="90">90 seconds</option>
+          </select>
+        </label>
+      </div>
+      <div class="panel-actions">
+        <button id="aiVocalGenerateBtn" type="button">♪ GENERATE AI VOCAL</button>
+        <a id="aiVocalDownload" class="text-button" download="speak-or-spell-ai-vocal.mp3" hidden>Download generated vocal</a>
+      </div>
+      <p id="aiVocalMessage" class="small-note" role="status" aria-live="polite">Your lyrics stay on this computer; requests go only to 127.0.0.1.</p>
+      <audio id="aiVocalAudio" controls preload="none" style="width:100%; margin-top:12px" hidden></audio>
+    </section>
+
     <section id="settingsPanel" class="settings-panel hidden">
       <div class="panel-heading">
         <div>
