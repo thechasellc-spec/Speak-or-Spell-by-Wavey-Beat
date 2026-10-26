@@ -73,6 +73,8 @@ async function createLocalAIVocal({ lyrics, style = 'upbeat pop', duration = 30,
       throw new Error('The local engine returned a non-local audio URL; it was blocked for privacy.');
     }
     audioUrl = parsed.toString();
+  } else if (completed.file.startsWith('/v1/audio?')) {
+    audioUrl = new URL(completed.file, AI_BASE).toString();
   } else {
     audioUrl = new URL('/v1/audio?path=' + encodeURIComponent(completed.file), AI_BASE).toString();
   }
