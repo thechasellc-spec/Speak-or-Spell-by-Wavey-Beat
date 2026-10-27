@@ -66,7 +66,7 @@ jobs:
       - name: Verify branded installer outputs
         working-directory: Speak-or-Spell-by-Wavey-Beat.-main
         run: |
-          test -f dist/Speak-or-Spell-by-Wavey-Beat-6.0.0-x64.dmg
+          test -f dist/Speak-or-Spell-by-Wavey-Beat-6.0.0-Intel-Mac.dmg
           test -f dist/Speak-or-Spell-by-Wavey-Beat-6.0.0-x64.zip
           ls -lh dist
 
