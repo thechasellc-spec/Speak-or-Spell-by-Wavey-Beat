@@ -32,7 +32,8 @@ function createWindow() {
   });
   win.loadFile('index.html');
 }
-app.whenReady().then(() => {\n  speakWelcomeOnLaunch();
+app.whenReady().then(() => {
+  speakWelcomeOnLaunch();
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
