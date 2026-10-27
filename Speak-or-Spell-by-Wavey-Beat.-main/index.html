@@ -12,7 +12,7 @@
       <div class="brand-mark">WB</div>
       <div class="brand-copy">
         <h1>SPEAK <span>OR</span> SPELL</h1>
-        <p>BY WAVEY BEAT · PLAYABLE VOCAL SYNTH</p>
+        <p>BY WAVEY BEAT · LOCAL VOCAL STUDIO</p>
       </div>
       <div class="top-actions">
         <button id="openLyrics" type="button">LYRICS</button>
@@ -153,11 +153,13 @@
       <textarea id="lyricsEditor" rows="10" placeholder="Enter lyrics here — each word becomes a sung syllable in tempo.">Hello Wavey Beat</textarea>
       <div class="panel-actions">
         <button id="previewText" type="button">Preview</button>
+        <button id="renderAiBtn" type="button">Render AI Singer WAV</button>
+        <p id="aiRenderStatus" class="small-note" role="status">AI singing needs a compatible local model runner. The built-in preview is a synthetic robot-style sound.</p>
         <button id="exportTxtBtn" type="button">Export TXT</button>
       </div>
     </section>
 
-    <footer>WAVEY BEAT · SPEAK OR SPELL <span id="footerBuild">EARLY PLAYABLE BUILD · 0.2.0</span></footer>
+    <footer>WAVEY BEAT · SPEAK OR SPELL <span id="footerBuild">LOCAL ENGINE BRIDGE · 0.2.1</span></footer>
   </main>
 
   <script src="singer-core.js"></script>
