@@ -151,7 +151,13 @@
         </div>
         <button id="closeLyrics" class="close-button" type="button">CLOSE</button>
       </div>
-      <textarea id="lyricsEditor" rows="10" placeholder="Enter lyrics here — each word becomes a sung syllable in tempo.">Hello Wavey Beat</textarea>
+      <textarea id="lyricsEditor" rows="10" placeholder="Paste your complete lyrics here. The AI will compose the melody and sing them.">Hello Wavey Beat</textarea>
+      <div class="settings-grid song-generation-settings">
+        <label>Genre <select id="songGenre"><option>Pop</option><option>Rock</option><option>Country</option><option>R&amp;B</option><option>Hip-Hop</option><option>Pop Punk</option><option>Folk</option><option>Electronic</option><option>Ballad</option><option>Gospel</option></select></label>
+        <label>Mood <select id="songMood"><option>Emotional and heartfelt</option><option>Upbeat and energetic</option><option>Romantic</option><option>Dark and cinematic</option><option>Hopeful and uplifting</option><option>Laid-back and mellow</option></select></label>
+        <label>Vocal delivery <select id="vocalDelivery"><option>Natural expressive lead vocals</option><option>Powerful belted vocals</option><option>Soft intimate vocals</option><option>Breathy airy vocals</option><option>Gritty soulful vocals</option></select></label>
+      </div>
+      <p class="small-note">Automatic mode: the AI composes the melody and accompaniment from your lyrics and settings. No manual MIDI notes required. Exact key/tempo adherence depends on the model.</p>
       <div class="panel-actions">
         <button id="previewText" type="button">Preview</button>
         <button id="renderAiBtn" type="button">Render AI Singer WAV</button>
