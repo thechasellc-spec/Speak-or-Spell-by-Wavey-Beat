@@ -157,12 +157,12 @@ $('renderAiBtn').addEventListener('click', async () => {
   const lyricText = $('lyricsEditor').value.trim();
   if (!lyricText) { $('aiRenderStatus').textContent = 'Enter lyrics before rendering.'; return; }
   if (!window.speakSpell || !window.speakSpell.renderNeuralSong) { $('aiRenderStatus').textContent = 'AI render is available only in the desktop app.'; return; }
-  const words = lyricText.split(/\s+/).filter(Boolean), tempo = Number($('tempo').value || 96);
+  const words = lyricText.split(/\s+/).filter(Boolean), tempo = Number($('tempo').value || 96);\n  const genre = $('songGenre')?.value || 'Pop';\n  const mood = $('songMood')?.value || 'Emotional and heartfelt';\n  const vocalDelivery = $('vocalDelivery')?.value || 'Natural expressive lead vocals';\n  const keyScale = $('keySelect').value + ' ' + $('scaleSelect').value;
   const baseNote = Math.max(36, Math.min(84, 60 + Math.max(0, noteNames.indexOf($('keySelect').value)) + Number($('pitchShift').value))), beat = 60 / tempo;
   const notes = words.map((lyric, index) => ({ id: 'n' + (index + 1), lyric, phonemes: null, midiNote: baseNote + [0,2,4,5,7,5,4,2][index % 8], startBeat: index, durationBeats: 0.9, velocity: 0.8, expressions: { pitchCents: 0, energy: 0.5, breathiness: 0.2 } }));
   $('renderAiBtn').disabled = true; $('aiRenderStatus').textContent = 'Preparing local AI singing render…';
   try {
-    const result = await window.speakSpell.renderNeuralSong({ requestId: 'render-' + Date.now(), schemaVersion: 1, language: 'en', tempoBpm: tempo, sampleRate: 44100, voice: { voiceId: $('voiceStyle').value, style: 'neutral' }, render: { format: 'wav', choir: { enabled: Number($('choirVoices').value) > 1, voices: Number($('choirVoices').value), spreadCents: Number($('choirSpread').value) } }, notes });
+    const result = await window.speakSpell.renderNeuralSong({ requestId: 'render-' + Date.now(), schemaVersion: 1, language: 'en', lyricsText: lyricText, tempoBpm: tempo, keyScale, stylePrompt: `${genre}, ${mood}, ${vocalDelivery}, key of ${keyScale}, ${tempo} BPM`, songSettings: { genre, mood, vocalDelivery, keyScale }, sampleRate: 44100, voice: { voiceId: $('voiceStyle').value, style: vocalDelivery }, render: { format: 'wav', choir: { enabled: Number($('choirVoices').value) > 1, voices: Number($('choirVoices').value), spreadCents: Number($('choirSpread').value) } }, notes });
     if (result.canceled) $('aiRenderStatus').textContent = 'Export canceled.';
     else if (result.ok) $('aiRenderStatus').textContent = 'WAV exported: ' + result.wavPath;
     else $('aiRenderStatus').textContent = result.code + ': ' + result.message;
