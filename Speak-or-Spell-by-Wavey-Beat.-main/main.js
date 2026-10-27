@@ -62,11 +62,16 @@ ipcMain.handle('render-neural-song', async (_event, song) => {
   let savedConfig = {};
   try { savedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch (_) {}
   const configuredRunner = savedConfig.runnerPath;
-  if (!configuredRunner || !fs.existsSync(configuredRunner)) return { ok: false, code: 'ENGINE_NOT_INSTALLED', message: 'No local singing model runner is configured yet. Choose a compatible runner in Settings after installing a licensed model.' };
+  // ACE-Step full-song mode can be connected to a local API without a paid hosted service.
+  // It generates whole-song vocals and does not promise exact MIDI note alignment.
+  const aceStepUrl = savedConfig.aceStepUrl || 'http://127.0.0.1:8001';
   const python = process.env.SPEAKSPELL_PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
   if (!fs.existsSync(worker)) return { ok: false, code: 'WORKER_MISSING', message: 'The local singing worker is missing from this installation.' };
   return await new Promise(resolve => {
-    const child = spawn(python, [worker], { env: { ...process.env, SPEAKSPELL_NEURAL_RUNNER: configuredRunner }, stdio: ['pipe', 'pipe', 'pipe'] });
+    const workerEnv = { ...process.env, SPEAKSPELL_ACE_STEP_URL: aceStepUrl };
+    if (configuredRunner && fs.existsSync(configuredRunner)) workerEnv.SPEAKSPELL_NEURAL_RUNNER = configuredRunner;
+    else delete workerEnv.SPEAKSPELL_NEURAL_RUNNER;
+    const child = spawn(python, [worker], { env: workerEnv, stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '', stderr = '';
     child.stdout.setEncoding('utf8'); child.stderr.setEncoding('utf8');
     child.stdout.on('data', chunk => { stdout += chunk; }); child.stderr.on('data', chunk => { stderr += chunk; });
