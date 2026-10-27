@@ -150,3 +150,22 @@ $('openProjectBtn').addEventListener("click",async()=>{
   if(d.text!=null)$('lyricsEditor').value=d.text;updateLabels();makePiano();$('statusText').textContent="PROJECT OPENED";setLCD("PROJECT LOADED");
  } else {alert("Project opening is available in the desktop app.");}
 });
+
+
+// Export lyrics and a basic note guide through the local neural-model bridge.
+$('renderAiBtn').addEventListener('click', async () => {
+  const lyricText = $('lyricsEditor').value.trim();
+  if (!lyricText) { $('aiRenderStatus').textContent = 'Enter lyrics before rendering.'; return; }
+  if (!window.speakSpell || !window.speakSpell.renderNeuralSong) { $('aiRenderStatus').textContent = 'AI render is available only in the desktop app.'; return; }
+  const words = lyricText.split(/\\s+/).filter(Boolean), tempo = Number($('tempo').value || 96);
+  const baseNote = Math.max(36, Math.min(84, 60 + Math.max(0, noteNames.indexOf($('keySelect').value)) + Number($('pitchShift').value))), beat = 60 / tempo;
+  const notes = words.map((lyric, index) => ({ lyric, midi: baseNote + [0,2,4,5,7,5,4,2][index % 8], start: index * beat, duration: beat * 0.9, velocity: 0.8 }));
+  $('renderAiBtn').disabled = true; $('aiRenderStatus').textContent = 'Preparing local AI singing render…';
+  try {
+    const result = await window.speakSpell.renderNeuralSong({ requestId: 'render-' + Date.now(), schemaVersion: 1, lyrics: lyricText, tempo, sampleRate: 44100, voice: $('voiceStyle').value, choirVoices: Number($('choirVoices').value), notes });
+    if (result.canceled) $('aiRenderStatus').textContent = 'Export canceled.';
+    else if (result.ok) $('aiRenderStatus').textContent = 'WAV exported: ' + result.wavPath;
+    else $('aiRenderStatus').textContent = result.code + ': ' + result.message;
+  } catch (error) { $('aiRenderStatus').textContent = 'AI render failed: ' + error.message; }
+  finally { $('renderAiBtn').disabled = false; }
+});
