@@ -49,7 +49,7 @@ def ace_step_render(base_url, request, output_path, request_id):
     duration = min(180.0, max(10.0, duration))
     voice = request.get("voice", {})
     voice_id = str(voice.get("voiceId", "")).lower()
-    vocal_style = "male vocal" if "male" in voice_id else "female vocal" if "female" in voice_id else "lead vocal"
+    vocal_style = "male vocal" if voice_id in ("masculine", "male", "man") else "female vocal" if voice_id in ("feminine", "female", "woman") else "lead vocal"
     render = request.get("render", {})
     settings = request.get("songSettings") or {}
     genre = str(settings.get("genre") or "Pop")
@@ -126,9 +126,9 @@ def main():
         emit({"status": "error", "requestId": request_id, "code": "INVALID_REQUEST",
               "message": "Expected schemaVersion 1 and a notes array."})
         return 2
-    if not request["notes"]:
+    if not request["notes"] and not str(request.get("lyricsText") or "").strip():
         emit({"status": "error", "requestId": request_id, "code": "EMPTY_SONG",
-              "message": "Add at least one lyric-aligned note before rendering."})
+              "message": "Add lyrics before rendering."})
         return 2
     destination = request.get("outputPath")
     if not isinstance(destination, str) or not destination.strip():
