@@ -49,6 +49,15 @@
         <button id="stopBtn" type="button">■ STOP</button>
         <button id="randomBtn" type="button">✦ SURPRISE ME</button>
       </div>
+      <div id="piano" class="piano" aria-label="Playable piano keyboard"></div>
+
+      <div class="keyboard-footer">
+        <div>
+          <span class="live-dot"></span>
+          <span id="midiStatus">MIDI: checking support…</span>
+        </div>
+        <button id="midiBtn" class="text-button" type="button">Connect MIDI</button>
+      </div>
     </section>
 
     <section class="play-panel">
@@ -85,16 +94,7 @@
         </div>
       </div>
 
-      <p class="helper">Click a key or use a connected MIDI keyboard. Each note sustains while held; vowels change the vocal shape.</p>
-      <div id="piano" class="piano" aria-label="Playable piano keyboard"></div>
-
-      <div class="keyboard-footer">
-        <div>
-          <span class="live-dot"></span>
-          <span id="midiStatus">MIDI: checking support…</span>
-        </div>
-        <button id="midiBtn" class="text-button" type="button">Connect MIDI</button>
-      </div>
+      <p class="helper">Choose a key and octave for the keyboard built into the retro device. Notes sustain while held; vowels change the vocal shape.</p>
     </section>
 
     <section id="settingsPanel" class="settings-panel hidden">
