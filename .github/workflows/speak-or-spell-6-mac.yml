@@ -22,12 +22,12 @@ jobs:
     runs-on: macos-15-intel
     steps:
       - name: Check out Speak or Spell by Wavey Beat
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: '24'
 
       - name: Create branded macOS app icon
         working-directory: Speak-or-Spell-by-Wavey-Beat.-main
@@ -76,7 +76,7 @@ jobs:
           ls -lh dist
 
       - name: Upload version 6.0 installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Speak-or-Spell-by-Wavey-Beat-6.0-Intel-Mac
           path: |
