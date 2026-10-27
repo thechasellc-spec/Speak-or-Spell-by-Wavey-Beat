@@ -28,7 +28,8 @@
       "renderer.js",
       "package.json",
       "singer-core.js",
-      "neural-engine/**/*"
+      "neural-engine/**/*",
+      "assets/**/*"
     ],
     "mac": {
       "target": [
