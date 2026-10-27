@@ -57,6 +57,6 @@
       "title": "Speak or Spell by Wavey Beat — AI Singing Studio",
       "artifactName": "Speak-or-Spell-by-Wavey-Beat-${version}-Intel-Mac.${ext}"
     },
-    "artifactName": "${productName}-${version}-${arch}.${ext}"
+    "artifactName": "Speak-or-Spell-by-Wavey-Beat-${version}-${arch}.${ext}"
   }
 }
