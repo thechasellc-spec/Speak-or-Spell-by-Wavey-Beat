@@ -49,6 +49,9 @@
     },
     "win": {
       "target": "nsis"
-    }
+    },
+    "asarUnpack": [
+      "neural-engine/**/*"
+    ]
   }
 }
