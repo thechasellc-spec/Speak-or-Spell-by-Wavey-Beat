@@ -4,6 +4,18 @@ const path = require('path');
 const os = require('os');
 const { spawn } = require('child_process');
 
+function speakWelcomeOnLaunch() {
+  // Use the built-in macOS voice for a spoken greeting at launch.
+  // This is system text-to-speech, not the separate AI singing model.
+  if (process.platform === 'darwin') {
+    try {
+      const greeting = 'Speak or Spell by Wavey Beat is ready. Open Lyrics, enter your words, then choose Sing Text.';
+      const child = spawn('say', [greeting], { stdio: 'ignore' });
+      child.on('error', () => {});
+    } catch (_) {}
+  }
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1120,
@@ -20,7 +32,7 @@ function createWindow() {
   });
   win.loadFile('index.html');
 }
-app.whenReady().then(() => {
+app.whenReady().then(() => {\n  speakWelcomeOnLaunch();
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
