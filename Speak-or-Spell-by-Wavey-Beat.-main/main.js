@@ -72,7 +72,7 @@ ipcMain.handle('render-neural-song', async (_event, song) => {
     child.stdout.on('data', chunk => { stdout += chunk; }); child.stderr.on('data', chunk => { stderr += chunk; });
     child.on('error', err => resolve({ ok: false, code: 'PYTHON_UNAVAILABLE', message: 'Could not start Python 3. Install Python 3, then try again. ' + err.message }));
     child.on('close', code => {
-      const lines = stdout.trim().split(/\\r?\\n/).filter(Boolean); let response = null;
+      const lines = stdout.trim().split(/\r?\n/).filter(Boolean); let response = null;
       for (const line of lines.reverse()) { try { response = JSON.parse(line); break; } catch (_) {} }
       if (code === 0 && response && response.status === 'complete') resolve({ ok: true, wavPath: response.wavPath });
       else resolve({ ok: false, code: response && response.code || 'WORKER_FAILED', message: response && response.message || stderr.trim() || 'The local singing worker failed.' });
