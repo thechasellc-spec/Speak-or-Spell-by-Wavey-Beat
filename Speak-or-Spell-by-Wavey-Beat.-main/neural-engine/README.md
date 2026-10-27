@@ -37,3 +37,25 @@ A usable voice needs a compatible acoustic model, phonemizer/phoneme inventory, 
 ## Acceptance test
 
 The bridge is not considered complete until a real, licensed English model produces a non-empty WAV from at least two lyric-aligned notes, note pitch/duration changes audibly affect the result, and the WAV can be auditioned/exported by the app. Male/female and choir are separate acceptance tests; do not advertise them before each passes.
+
+## Optional ACE-Step full-song backend
+
+The worker now has an adapter for the official ACE-Step HTTP API. This is a **full-song vocal generation mode**, not a MIDI-exact singing synthesizer. It is useful for evaluating Suno-style lyrics-to-song generation, while DiffSinger remains the candidate for exact lyric + MIDI note control.
+
+1. Install ACE-Step 1.5 separately using its official instructions: https://github.com/ACE-Step/ACE-Step-1.5/blob/main/docs/en/INSTALL.md
+2. Start its local API server on the same computer, normally at `http://127.0.0.1:8001`.
+3. In Speak or Spell, use AI render. The app connects only to the local address by default; it does not call a paid hosted API.
+4. The first model run may download several GB of model files. Keep enough disk space available.
+5. If the API is not running, the app reports that the local API cannot be reached; it must not claim a successful render.
+
+ACE-Step's official guide says CPU inference is supported but significantly slower. The official macOS acceleration path is aimed at Apple Silicon; on an Intel Mac, CPU/PyTorch inference may be impractically slow. This adapter has not yet been validated on the user's Intel Mac, and packaging the Electron app does not install the ACE-Step model or Python environment.
+
+API details used by this adapter are documented by ACE-Step: https://github.com/ACE-Step/ACE-Step-1.5/blob/main/docs/en/API.md
+
+### Acceptance gates
+
+- API responds to health check / task creation.
+- English lyrics are audible in generated output (not only instruments or a demo clip).
+- Output is valid WAV and opens in the app.
+- Record actual generation time and memory on Intel macOS 13 before declaring it usable.
+- Separately test a DiffSinger model/voicebank before claiming exact MIDI pitch/timing control, male/female voices, or choir support.
