@@ -47,7 +47,10 @@ def main():
             model_request = {k:v for k,v in request.items() if k != "outputPath"}
             request_path.write_text(json.dumps(model_request, ensure_ascii=False), encoding="utf-8")
             emit({"status":"progress","requestId":request_id,"progress":0.05,"message":"Starting local singing model"})
-            result = subprocess.run([runner,"--request",str(request_path),"--output",str(output_path)],
+            runner_command = [runner, "--request", str(request_path), "--output", str(output_path)]
+            if Path(runner).suffix.lower() == ".py":
+                runner_command.insert(0, sys.executable)
+            result = subprocess.run(runner_command,
                 capture_output=True,text=True,timeout=900,check=False)
             if result.returncode != 0:
                 detail = (result.stderr or result.stdout or "Model runner failed").strip()[-1200:]
