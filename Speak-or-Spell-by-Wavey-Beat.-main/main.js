@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -46,4 +47,30 @@ ipcMain.handle('open-project', async () => {
   } catch (_error) {
     return { canceled: false, error: 'That project file could not be read as valid JSON.' };
   }
+});
+
+
+// Local neural-worker bridge. A compatible model runner must be installed separately.
+ipcMain.handle('render-neural-song', async (_event, song) => {
+  if (!song || !Array.isArray(song.notes) || song.notes.length === 0) return { ok: false, code: 'EMPTY_SONG', message: 'Enter lyrics first so the app can prepare a song.' };
+  const result = await dialog.showSaveDialog({ title: 'Export AI Singing WAV', defaultPath: path.join(app.getPath('documents'), 'Speak-or-Spell-Vocal.wav'), filters: [{ name: 'WAV Audio', extensions: ['wav'] }] });
+  if (result.canceled || !result.filePath) return { canceled: true };
+  const appRoot = app.isPackaged ? path.join(process.resourcesPath, 'app.asar.unpacked') : __dirname;
+  const worker = path.join(appRoot, 'neural-engine', 'worker.py');
+  const python = process.env.SPEAKSPELL_PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
+  if (!fs.existsSync(worker)) return { ok: false, code: 'WORKER_MISSING', message: 'The local singing worker is missing from this installation.' };
+  return await new Promise(resolve => {
+    const child = spawn(python, [worker], { env: process.env, stdio: ['pipe', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '';
+    child.stdout.setEncoding('utf8'); child.stderr.setEncoding('utf8');
+    child.stdout.on('data', chunk => { stdout += chunk; }); child.stderr.on('data', chunk => { stderr += chunk; });
+    child.on('error', err => resolve({ ok: false, code: 'PYTHON_UNAVAILABLE', message: 'Could not start Python 3. Install Python 3, then try again. ' + err.message }));
+    child.on('close', code => {
+      const lines = stdout.trim().split(/\\r?\\n/).filter(Boolean); let response = null;
+      for (const line of lines.reverse()) { try { response = JSON.parse(line); break; } catch (_) {} }
+      if (code === 0 && response && response.status === 'complete') resolve({ ok: true, wavPath: response.wavPath });
+      else resolve({ ok: false, code: response && response.code || 'WORKER_FAILED', message: response && response.message || stderr.trim() || 'The local singing worker failed.' });
+    });
+    child.stdin.end(JSON.stringify({ ...song, schemaVersion: 1, outputPath: result.filePath }));
+  });
 });
