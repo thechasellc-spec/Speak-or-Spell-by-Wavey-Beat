@@ -51,8 +51,14 @@ def ace_step_render(base_url, request, output_path, request_id):
     voice_id = str(voice.get("voiceId", "")).lower()
     vocal_style = "male vocal" if "male" in voice_id else "female vocal" if "female" in voice_id else "lead vocal"
     render = request.get("render", {})
-    style = request.get("stylePrompt") or request.get("prompt") or "melodic pop, clear English vocals"
-    prompt = f"{style}, {vocal_style}, expressive sung vocals, English lyrics"
+    settings = request.get("songSettings") or {}
+    genre = str(settings.get("genre") or "Pop")
+    mood = str(settings.get("mood") or "emotional and heartfelt")
+    delivery = str(settings.get("vocalDelivery") or "natural expressive lead vocals")
+    key_scale = str(request.get("keyScale") or settings.get("keyScale") or "").strip()
+    style = request.get("stylePrompt") or f"{genre}, {mood}, {delivery}"
+    control_text = f", target key/scale {key_scale}" if key_scale else ""
+    prompt = f"{style}{control_text}, {vocal_style}, expressive sung vocals, clear English lyrics, coherent melody, complete song arrangement"
     payload = {
         "prompt": prompt,
         "lyrics": lyrics,
@@ -61,6 +67,14 @@ def ace_step_render(base_url, request, output_path, request_id):
         "audio_duration": duration,
         "thinking": True,
     }
+    # Send target metadata where supported; keep key/tempo in the prompt too.
+    try:
+        payload["bpm"] = max(30, min(240, int(float(request.get("tempoBpm", 100)))))
+    except (TypeError, ValueError):
+        pass
+    if key_scale:
+        payload["key_scale"] = key_scale
+    payload["time_signature"] = "4/4"
     emit({"status": "progress", "requestId": request_id, "progress": 0.05,
           "message": "Submitting lyrics to local ACE-Step full-song model"})
     submitted = http_json(urljoin(base_url, "release_task"), payload, timeout=60)
