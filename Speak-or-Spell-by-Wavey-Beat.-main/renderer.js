@@ -193,7 +193,9 @@ $('renderAiBtn').addEventListener('click', async () => {
   const words = lyricText.split(/\s+/).filter(Boolean), tempo = Number($('tempo').value || 96);
   const genre = $('songGenre')?.value || 'Pop';
   const mood = $('songMood')?.value || 'Emotional and heartfelt';
-  const vocalDelivery = $('vocalDelivery')?.value || 'Natural expressive lead vocals';\n  const selectedScale = $('scaleSelect').value;\n  const keyScale = selectedScale === 'Chromatic' ? $('keySelect').value : $('keySelect').value + ' ' + selectedScale;
+  const vocalDelivery = $('vocalDelivery')?.value || 'Natural expressive lead vocals';
+  const selectedScale = $('scaleSelect').value;
+  const keyScale = selectedScale === 'Chromatic' ? $('keySelect').value : $('keySelect').value + ' ' + selectedScale;
   const baseNote = Math.max(36, Math.min(84, 60 + Math.max(0, noteNames.indexOf($('keySelect').value)) + Number($('pitchShift').value))), beat = 60 / tempo;
   const notes = words.map((lyric, index) => ({ id: 'n' + (index + 1), lyric, phonemes: null, midiNote: baseNote + [0,2,4,5,7,5,4,2][index % 8], startBeat: index, durationBeats: 0.9, velocity: 0.8, expressions: { pitchCents: 0, energy: 0.5, breathiness: 0.2 } }));
   $('renderAiBtn').disabled = true; $('aiRenderStatus').textContent = 'Preparing local AI singing render…';
