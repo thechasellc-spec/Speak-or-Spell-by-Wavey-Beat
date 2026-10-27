@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { spawn } = require('child_process');
 
 function createWindow() {
@@ -57,10 +58,15 @@ ipcMain.handle('render-neural-song', async (_event, song) => {
   if (result.canceled || !result.filePath) return { canceled: true };
   const appRoot = app.isPackaged ? path.join(process.resourcesPath, 'app.asar.unpacked') : __dirname;
   const worker = path.join(appRoot, 'neural-engine', 'worker.py');
+  const configPath = path.join(app.getPath('userData'), 'neural-engine.json');
+  let savedConfig = {};
+  try { savedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch (_) {}
+  const configuredRunner = savedConfig.runnerPath;
+  if (!configuredRunner || !fs.existsSync(configuredRunner)) return { ok: false, code: 'ENGINE_NOT_INSTALLED', message: 'No local singing model runner is configured yet. Choose a compatible runner in Settings after installing a licensed model.' };
   const python = process.env.SPEAKSPELL_PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
   if (!fs.existsSync(worker)) return { ok: false, code: 'WORKER_MISSING', message: 'The local singing worker is missing from this installation.' };
   return await new Promise(resolve => {
-    const child = spawn(python, [worker], { env: process.env, stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn(python, [worker], { env: { ...process.env, SPEAKSPELL_NEURAL_RUNNER: configuredRunner }, stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '', stderr = '';
     child.stdout.setEncoding('utf8'); child.stderr.setEncoding('utf8');
     child.stdout.on('data', chunk => { stdout += chunk; }); child.stderr.on('data', chunk => { stderr += chunk; });
@@ -73,4 +79,17 @@ ipcMain.handle('render-neural-song', async (_event, song) => {
     });
     child.stdin.end(JSON.stringify({ ...song, schemaVersion: 1, outputPath: result.filePath }));
   });
+});
+
+
+ipcMain.handle('choose-neural-runner', async () => {
+  const result = await dialog.showOpenDialog({ title: 'Choose a compatible local singing model runner', properties: ['openFile'] });
+  if (result.canceled || !result.filePaths[0]) return { canceled: true };
+  const selected = result.filePaths[0];
+  const configPath = path.join(app.getPath('userData'), 'neural-engine.json');
+  let config = {}; try { config = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch (_) {}
+  config.runnerPath = selected;
+  fs.mkdirSync(path.dirname(configPath), { recursive: true });
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
+  return { canceled: false, runnerPath: selected };
 });
