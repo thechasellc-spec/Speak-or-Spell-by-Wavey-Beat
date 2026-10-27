@@ -25,7 +25,7 @@ class WorkerProtocolTests(unittest.TestCase):
 
     def test_missing_engine_reports_clear_error(self):
         code, response = self.run_worker({
-            "schemaVersion": 1, "requestId": "test-1", "notes": [{"lyric": "hello"}]
+            "schemaVersion": 1, "requestId": "test-1", "outputPath": "/tmp/test.wav", "notes": [{"lyric": "hello"}]
         })
         self.assertEqual(code, 3)
         self.assertEqual(response["code"], "ENGINE_NOT_INSTALLED")
