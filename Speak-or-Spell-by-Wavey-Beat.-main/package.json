@@ -1,7 +1,7 @@
 {
   "name": "speak-or-spell-wavey-beat",
-  "version": "0.2.1",
-  "description": "Speak or Spell by Wavey Beat — lyrics-to-melody vocal synth prototype with voice styles, MIDI input, and choir layering",
+  "version": "6.0.0",
+  "description": "Speak or Spell by Wavey Beat — branded AI singing studio with local vocal-engine integration",
   "main": "main.js",
   "author": "Wavey Beat",
   "license": "UNLICENSED",
@@ -27,7 +27,9 @@
       "styles.css",
       "renderer.js",
       "package.json",
-      "singer-core.js"
+      "singer-core.js",
+      "neural-engine/**/*",
+      "assets/**/*"
     ],
     "mac": {
       "target": [
@@ -48,6 +50,14 @@
     },
     "win": {
       "target": "nsis"
-    }
+    },
+    "asarUnpack": [
+      "neural-engine/**/*"
+    ],
+    "dmg": {
+      "title": "Speak or Spell by Wavey Beat — AI Singing Studio",
+      "artifactName": "Speak-or-Spell-by-Wavey-Beat-${version}-Intel-Mac.${ext}"
+    },
+    "artifactName": "Speak-or-Spell-by-Wavey-Beat-${version}-${arch}.${ext}"
   }
 }

@@ -1,0 +1,86 @@
+name: Speak or Spell 6.0 Intel Mac Installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/local-neural-engine-bridge
+    paths:
+      - 'Speak-or-Spell-by-Wavey-Beat.-main/**'
+      - '.github/workflows/speak-or-spell-6-mac.yml'
+
+permissions:
+  contents: read
+
+# Keep only the newest installer build queued/running for this branch.
+concurrency:
+  group: speak-or-spell-6-intel-mac-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-intel-mac:
+    runs-on: macos-15-intel
+    steps:
+      - name: Check out Speak or Spell by Wavey Beat
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Create branded macOS app icon
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
+        run: |
+          npm install --no-save sharp
+          mkdir -p assets/WaveyBeat.iconset
+          node - <<'NODE'
+          const sharp = require('sharp');
+          const fs = require('fs');
+          const svg = fs.readFileSync('assets/wavey-beat-logo.svg');
+          const sizes = [
+            ['icon_16x16.png',16], ['icon_16x16@2x.png',32],
+            ['icon_32x32.png',32], ['icon_32x32@2x.png',64],
+            ['icon_128x128.png',128], ['icon_128x128@2x.png',256],
+            ['icon_256x256.png',256], ['icon_256x256@2x.png',512],
+            ['icon_512x512.png',512], ['icon_512x512@2x.png',1024]
+          ];
+          (async () => {
+            for (const [name, size] of sizes) {
+              await sharp(svg).resize(size, size).png().toFile('assets/WaveyBeat.iconset/' + name);
+            }
+          })().catch(err => { console.error(err); process.exit(1); });
+          NODE
+          iconutil -c icns assets/WaveyBeat.iconset -o assets/wavey-beat.icns
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          p.version = '6.0.0';
+          p.build.mac.icon = 'assets/wavey-beat.icns';
+          fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
+          NODE
+
+      - name: Install app dependencies
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
+        run: npm install
+
+      - name: Build version 6.0 Intel Mac DMG and ZIP
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
+        run: npm run dist:mac
+
+      - name: Verify branded installer outputs
+        working-directory: Speak-or-Spell-by-Wavey-Beat.-main
+        run: |
+          test -f dist/Speak-or-Spell-by-Wavey-Beat-6.0.0-Intel-Mac.dmg
+          test -f dist/Speak-or-Spell-by-Wavey-Beat-6.0.0-x64.zip
+          ls -lh dist
+
+      - name: Upload version 6.0 installer
+        uses: actions/upload-artifact@v6
+        with:
+          name: Speak-or-Spell-by-Wavey-Beat-6.0-Intel-Mac
+          path: |
+            Speak-or-Spell-by-Wavey-Beat.-main/dist/*.dmg
+            Speak-or-Spell-by-Wavey-Beat.-main/dist/*.zip
+          if-no-files-found: error
+          retention-days: 14

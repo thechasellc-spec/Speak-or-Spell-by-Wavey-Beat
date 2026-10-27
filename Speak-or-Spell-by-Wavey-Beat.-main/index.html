@@ -9,12 +9,14 @@
 <body>
   <main class="app-shell">
     <header class="topbar">
-      <div class="brand-mark">WB</div>
+      <img class="brand-mark" src="assets/wavey-beat-logo.svg" alt="Wavey Beat logo" />
       <div class="brand-copy">
         <h1>SPEAK <span>OR</span> SPELL</h1>
-        <p>BY WAVEY BEAT · PLAYABLE VOCAL SYNTH</p>
+        <p>BY WAVEY BEAT · LOCAL VOCAL STUDIO</p>
       </div>
       <div class="top-actions">
+        <button id="openLyrics" type="button">LYRICS</button>
+        <button id="openSettings" type="button">SETTINGS</button>
         <button id="saveBtn" type="button">SAVE</button>
         <button id="openProjectBtn" type="button">OPEN</button>
       </div>
@@ -24,6 +26,7 @@
       <div class="device-top">
         <span class="screw"></span>
         <div class="device-logo">SPEAK <b>&</b> SPELL <small>WAVEY BEAT EDITION</small></div>
+        <img class="device-brand-logo" src="assets/wavey-beat-logo.svg" alt="Wavey Beat logo" />
         <span class="screw"></span>
       </div>
 
@@ -32,6 +35,7 @@
           <div class="lcd-status">
             <span id="modeReadout">SING MODE</span>
             <span id="statusText">READY</span>
+            <span id="voiceReadout">VOICE: RETRO ROBOT</span>
           </div>
           <div id="lcdText" class="lcd-text">HELLO, SINGER!</div>
           <div id="noteReadout" class="note-readout">NOTE: C4</div>
@@ -41,10 +45,28 @@
       <div class="device-label">PRESS A LETTER · PLAY A NOTE · MAKE IT SING</div>
       <div id="letterPad" class="letter-pad" aria-label="Speak and Spell letter keypad"></div>
 
+      <div class="hardware-controls" aria-label="Retro studio rotary controls">
+        <div class="knob-unit"><button class="rotary-knob" type="button" data-knob="tempo" aria-label="Adjust tempo" title="Drag up or down to adjust tempo"><span></span></button><label for="tempo">TEMPO</label><small>60–180 BPM</small></div>
+        <div class="knob-unit"><button class="rotary-knob" type="button" data-knob="singMix" aria-label="Adjust human / robot" title="Drag up or down to adjust human / robot"><span></span></button><label for="singMix">HUMAN / ROBOT</label><small>VOICE BLEND</small></div>
+        <div class="knob-unit"><button class="rotary-knob" type="button" data-knob="brightness" aria-label="Adjust brightness" title="Drag up or down to adjust brightness"><span></span></button><label for="brightness">BRIGHTNESS</label><small>TONE</small></div>
+        <div class="knob-unit"><button class="rotary-knob" type="button" data-knob="vibrato" aria-label="Adjust vibrato" title="Drag up or down to adjust vibrato"><span></span></button><label for="vibrato">VIBRATO</label><small>MODULATION</small></div>
+        <div class="knob-unit"><button class="rotary-knob" type="button" data-knob="volume" aria-label="Adjust output" title="Drag up or down to adjust output"><span></span></button><label for="volume">OUTPUT</label><small>LEVEL</small></div>
+        <div class="knob-unit"><button class="rotary-knob" type="button" data-knob="choirVoices" aria-label="Adjust choir" title="Drag up or down to adjust choir"><span></span></button><label for="choirVoices">CHOIR</label><small>HARMONIES</small></div>
+      </div>
+
       <div class="device-functions">
         <button id="speakBtn" type="button">▶ SING TEXT</button>
         <button id="stopBtn" type="button">■ STOP</button>
         <button id="randomBtn" type="button">✦ SURPRISE ME</button>
+      </div>
+      <div id="piano" class="piano" aria-label="Playable piano keyboard"></div>
+
+      <div class="keyboard-footer">
+        <div>
+          <span class="live-dot"></span>
+          <span id="midiStatus">MIDI: checking support…</span>
+        </div>
+        <button id="midiBtn" class="text-button" type="button">Connect MIDI</button>
       </div>
     </section>
 
@@ -82,16 +104,7 @@
         </div>
       </div>
 
-      <p class="helper">Click a key or use a connected MIDI keyboard. Each note sustains while held; vowels change the vocal shape.</p>
-      <div id="piano" class="piano" aria-label="Playable piano keyboard"></div>
-
-      <div class="keyboard-footer">
-        <div>
-          <span class="live-dot"></span>
-          <span id="midiStatus">MIDI: checking support…</span>
-        </div>
-        <button id="midiBtn" class="text-button" type="button">Connect MIDI</button>
-      </div>
+      <p class="helper">Choose a key and octave for the keyboard built into the retro device. Notes sustain while held; vowels change the vocal shape.</p>
     </section>
 
     <section id="settingsPanel" class="settings-panel hidden">
@@ -104,6 +117,7 @@
       </div>
 
       <div class="settings-grid">
+        <label>Singing character mix <strong id="singValue">65%</strong><input id="singMix" type="range" min="0" max="100" value="65" /></label>
         <label>Tempo <strong id="tempoValue">96 BPM</strong><input id="tempo" type="range" min="60" max="180" value="96" /></label>
         <label>Voice character
           <select id="voiceStyle">
@@ -146,14 +160,23 @@
         </div>
         <button id="closeLyrics" class="close-button" type="button">CLOSE</button>
       </div>
-      <textarea id="lyricsEditor" rows="10" placeholder="Enter lyrics here — each word becomes a sung syllable in tempo.">Hello Wavey Beat</textarea>
+      <textarea id="lyricsEditor" rows="10" placeholder="Paste your complete lyrics here. The AI will compose the melody and sing them.">Hello Wavey Beat</textarea>
+      <div class="settings-grid song-generation-settings">
+        <label>Genre <select id="songGenre"><option>Pop</option><option>Rock</option><option>Country</option><option>R&amp;B</option><option>Hip-Hop</option><option>Pop Punk</option><option>Folk</option><option>Electronic</option><option>Ballad</option><option>Gospel</option></select></label>
+        <label>Mood <select id="songMood"><option>Emotional and heartfelt</option><option>Upbeat and energetic</option><option>Romantic</option><option>Dark and cinematic</option><option>Hopeful and uplifting</option><option>Laid-back and mellow</option></select></label>
+        <label>Vocal delivery <select id="vocalDelivery"><option>Natural expressive lead vocals</option><option>Powerful belted vocals</option><option>Soft intimate vocals</option><option>Breathy airy vocals</option><option>Gritty soulful vocals</option></select></label>
+      </div>
+      <p class="small-note">Automatic mode: the AI composes the melody and accompaniment from your lyrics and settings. No manual MIDI notes required. Exact key/tempo adherence depends on the model.</p>
       <div class="panel-actions">
         <button id="previewText" type="button">Preview</button>
+        <button id="renderAiBtn" type="button">Render AI Singer WAV</button>
+        <button id="chooseRunnerBtn" type="button">Choose Local AI Model Runner</button>
+        <p id="aiRenderStatus" class="small-note" role="status">No model is bundled. Choose a compatible runner for a separately installed, licensed singing model. The preview is synthetic.</p>
         <button id="exportTxtBtn" type="button">Export TXT</button>
       </div>
     </section>
 
-    <footer>WAVEY BEAT · SPEAK OR SPELL <span id="footerBuild">EARLY PLAYABLE BUILD · 0.2.0</span></footer>
+    <footer>WAVEY BEAT · SPEAK OR SPELL <span id="footerBuild">AI SINGING STUDIO · 6.0.0</span></footer>
   </main>
 
   <script src="singer-core.js"></script>
