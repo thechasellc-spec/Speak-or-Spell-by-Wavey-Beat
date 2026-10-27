@@ -100,6 +100,39 @@ function speakText(){
     }
   },endSeconds*1000);
 }
+
+function syncKnobPositions(){
+  document.querySelectorAll('[data-knob]').forEach(knob=>{
+    const input=$(knob.dataset.knob); if(!input) return;
+    const min=Number(input.min||0), max=Number(input.max||100), value=Number(input.value);
+    const angle=-135+((value-min)/(max-min||1))*270;
+    const marker=knob.querySelector('span'); if(marker) marker.style.transform='rotate('+angle+'deg)';
+    knob.setAttribute('aria-valuemin',String(min));knob.setAttribute('aria-valuemax',String(max));knob.setAttribute('aria-valuenow',String(value));
+  });
+}
+function wireHardwareKnobs(){
+  document.querySelectorAll('[data-knob]').forEach(knob=>{
+    const input=$(knob.dataset.knob); if(!input) return;
+    let startY=0,startValue=0;
+    const setFromPointer=e=>{
+      const min=Number(input.min||0),max=Number(input.max||100),step=Number(input.step||1);
+      const next=Math.max(min,Math.min(max,startValue+(startY-e.clientY)*(max-min)/150));
+      input.value=String(Math.round(next/step)*step);
+      input.dispatchEvent(new Event('input',{bubbles:true}));
+      syncKnobPositions();
+    };
+    knob.addEventListener('pointerdown',e=>{e.preventDefault();startY=e.clientY;startValue=Number(input.value);knob.setPointerCapture?.(e.pointerId);});
+    knob.addEventListener('pointermove',e=>{if(e.buttons===1)setFromPointer(e);});
+    knob.addEventListener('keydown',e=>{
+      if(!['ArrowUp','ArrowRight','ArrowDown','ArrowLeft'].includes(e.key))return;
+      e.preventDefault();const delta=(e.key==='ArrowUp'||e.key==='ArrowRight'?1:-1)*Number(input.step||1);
+      input.value=String(Math.max(Number(input.min||0),Math.min(Number(input.max||100),Number(input.value)+delta)));
+      input.dispatchEvent(new Event('input',{bubbles:true}));syncKnobPositions();
+    });
+    knob.addEventListener('click',()=>{if(document.activeElement!==knob)knob.focus();});
+  });
+}
+
 function updateLabels(){
   $('singValue').textContent=$('singMix').value+"%";if($('tempoValue'))$('tempoValue').textContent=$('tempo').value+" BPM";if($('choirValue'))$('choirValue').textContent=$('choirVoices').value;if($('choirSpreadValue'))$('choirSpreadValue').textContent=$('choirSpread').value+"¢";$('pitchValue').textContent=Number($('pitchShift').value)>0?"+"+$('pitchShift').value+" st":$('pitchShift').value+" st";
   $('vibratoValue').textContent=$('vibrato').value+"%";$('brightValue').textContent=$('brightness').value+"%";$('volumeValue').textContent=$('volume').value+"%";
@@ -113,7 +146,7 @@ $('openLyrics').addEventListener("click",()=>{$('lyricsPanel').classList.remove(
 $('closeLyrics').addEventListener("click",()=>togglePanel("lyricsPanel"));
 $('speakBtn').addEventListener("click",speakText);$('previewText').addEventListener("click",speakText);$('stopBtn').addEventListener("click",stopAll);
 $('randomBtn').addEventListener("click",()=>{const vowels=["a","e","i","o","u"];const v=vowels[Math.floor(Math.random()*vowels.length)];$('vowel').value=v;const note=48+Math.floor(Math.random()*25);startVoice("surprise",note,v,0.85);setTimeout(()=>stopVoice("surprise",0.25),650);setLCD("SURPRISE: "+v.toUpperCase(),note)});
-['singMix','pitchShift','vibrato','brightness','volume','tempo','choirVoices','choirSpread'].forEach(id=>$(id).addEventListener("input",updateLabels));
+['singMix','pitchShift','vibrato','brightness','volume','tempo','choirVoices','choirSpread'].forEach(id=>$(id).addEventListener("input",()=>{updateLabels();syncKnobPositions();}));
 $('voiceStyle').addEventListener("change",updateLabels);
 $('vowel').addEventListener("change",()=>setLCD("VOWEL: "+$('vowel').value.toUpperCase()));
 $('octaveSelect').addEventListener("change",makePiano);
@@ -134,7 +167,7 @@ $('saveBtn').addEventListener("click",async()=>{
  else{const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="speak-or-spell-project.json";a.click();URL.revokeObjectURL(a.href);$('statusText').textContent="PROJECT EXPORTED";}
 });
 $('exportTxtBtn').addEventListener("click",()=>{const blob=new Blob([$('lyricsEditor').value],{type:"text/plain;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="speak-or-spell-text.txt";a.click();URL.revokeObjectURL(a.href)});
-makeLetterPad();makePiano();updateLabels();setLCD("HELLO, SINGER!");connectMIDI();
+makeLetterPad();makePiano();wireHardwareKnobs();updateLabels();syncKnobPositions();setLCD("HELLO, SINGER!");connectMIDI();
 document.addEventListener("keydown",e=>{if(e.repeat||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;const letter=e.key.toUpperCase();if(letters.includes(letter)){const b=document.querySelector('[data-letter="'+letter+'"]');if(b)b.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true}));}});
 document.addEventListener("keyup",e=>{const letter=e.key.toUpperCase();if(letters.includes(letter)){const b=document.querySelector('[data-letter="'+letter+'"]');if(b)b.dispatchEvent(new PointerEvent("pointerup",{bubbles:true}));}});
 
@@ -157,7 +190,10 @@ $('renderAiBtn').addEventListener('click', async () => {
   const lyricText = $('lyricsEditor').value.trim();
   if (!lyricText) { $('aiRenderStatus').textContent = 'Enter lyrics before rendering.'; return; }
   if (!window.speakSpell || !window.speakSpell.renderNeuralSong) { $('aiRenderStatus').textContent = 'AI render is available only in the desktop app.'; return; }
-  const words = lyricText.split(/\s+/).filter(Boolean), tempo = Number($('tempo').value || 96);\n  const genre = $('songGenre')?.value || 'Pop';\n  const mood = $('songMood')?.value || 'Emotional and heartfelt';\n  const vocalDelivery = $('vocalDelivery')?.value || 'Natural expressive lead vocals';\n  const selectedScale = $('scaleSelect').value;\n  const keyScale = selectedScale === 'Chromatic' ? $('keySelect').value : $('keySelect').value + ' ' + selectedScale;
+  const words = lyricText.split(/\s+/).filter(Boolean), tempo = Number($('tempo').value || 96);
+  const genre = $('songGenre')?.value || 'Pop';
+  const mood = $('songMood')?.value || 'Emotional and heartfelt';
+  const vocalDelivery = $('vocalDelivery')?.value || 'Natural expressive lead vocals';\n  const selectedScale = $('scaleSelect').value;\n  const keyScale = selectedScale === 'Chromatic' ? $('keySelect').value : $('keySelect').value + ' ' + selectedScale;
   const baseNote = Math.max(36, Math.min(84, 60 + Math.max(0, noteNames.indexOf($('keySelect').value)) + Number($('pitchShift').value))), beat = 60 / tempo;
   const notes = words.map((lyric, index) => ({ id: 'n' + (index + 1), lyric, phonemes: null, midiNote: baseNote + [0,2,4,5,7,5,4,2][index % 8], startBeat: index, durationBeats: 0.9, velocity: 0.8, expressions: { pitchCents: 0, energy: 0.5, breathiness: 0.2 } }));
   $('renderAiBtn').disabled = true; $('aiRenderStatus').textContent = 'Preparing local AI singing render…';
