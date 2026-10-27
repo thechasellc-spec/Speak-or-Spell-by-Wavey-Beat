@@ -66,7 +66,7 @@ ipcMain.handle('open-project', async () => {
 
 // Local neural-worker bridge. A compatible model runner must be installed separately.
 ipcMain.handle('render-neural-song', async (_event, song) => {
-  if (!song || !Array.isArray(song.notes) || song.notes.length === 0) return { ok: false, code: 'EMPTY_SONG', message: 'Enter lyrics first so the app can prepare a song.' };
+  if (!song || !Array.isArray(song.notes) || (!song.notes.length && !String(song.lyricsText || '').trim())) return { ok: false, code: 'EMPTY_SONG', message: 'Enter lyrics first so the app can prepare a song.' };
   const result = await dialog.showSaveDialog({ title: 'Export AI Singing WAV', defaultPath: path.join(app.getPath('documents'), 'Speak-or-Spell-Vocal.wav'), filters: [{ name: 'WAV Audio', extensions: ['wav'] }] });
   if (result.canceled || !result.filePath) return { canceled: true };
   const appRoot = app.isPackaged ? path.join(process.resourcesPath, 'app.asar.unpacked') : __dirname;
