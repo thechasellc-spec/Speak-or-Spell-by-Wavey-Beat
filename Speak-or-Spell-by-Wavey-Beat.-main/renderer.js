@@ -157,7 +157,7 @@ $('renderAiBtn').addEventListener('click', async () => {
   const lyricText = $('lyricsEditor').value.trim();
   if (!lyricText) { $('aiRenderStatus').textContent = 'Enter lyrics before rendering.'; return; }
   if (!window.speakSpell || !window.speakSpell.renderNeuralSong) { $('aiRenderStatus').textContent = 'AI render is available only in the desktop app.'; return; }
-  const words = lyricText.split(/\\s+/).filter(Boolean), tempo = Number($('tempo').value || 96);
+  const words = lyricText.split(/\s+/).filter(Boolean), tempo = Number($('tempo').value || 96);
   const baseNote = Math.max(36, Math.min(84, 60 + Math.max(0, noteNames.indexOf($('keySelect').value)) + Number($('pitchShift').value))), beat = 60 / tempo;
   const notes = words.map((lyric, index) => ({ id: 'n' + (index + 1), lyric, phonemes: null, midiNote: baseNote + [0,2,4,5,7,5,4,2][index % 8], startBeat: index, durationBeats: 0.9, velocity: 0.8, expressions: { pitchCents: 0, energy: 0.5, breathiness: 0.2 } }));
   $('renderAiBtn').disabled = true; $('aiRenderStatus').textContent = 'Preparing local AI singing render…';
